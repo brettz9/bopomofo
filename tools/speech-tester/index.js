@@ -1,5 +1,5 @@
-import {jml, $} from './vendor/jamilih/dist/jml-es.js';
-import {bopomofoSymbols} from './src/index.js';
+import {jml, $} from '../../vendor/jamilih/dist/jml-es.js';
+import {bopomofoSymbols} from '../../src/index.js';
 
 const synth = window.speechSynthesis;
 const voiceSelect = $('#voices');
