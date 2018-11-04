@@ -1,0 +1,29 @@
+{
+  "name": "bopomofo",
+  "version": "0.1.0",
+  "description": "Tool for studying bopomofo transliteration system",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/brettz9/bopomofo.git"
+  },
+  "keywords": [
+    "bopomofo",
+    "transliteration",
+    "education"
+  ],
+  "author": "Brett Zamir",
+  "contributors": [],
+  "license": "AGPL-3.0-or-later",
+  "bugs": {
+    "url": "https://github.com/brettz9/bopomofo/issues"
+  },
+  "homepage": "https://github.com/brettz9/bopomofo#readme",
+  "engines": {},
+  "dependencies": {},
+  "devDependencies": {
+
+  }
+}
