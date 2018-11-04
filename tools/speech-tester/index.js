@@ -8,6 +8,8 @@ const cancelButton = $('#cancel');
 const userText = $('#userText');
 const buttonArea = $('#buttonArea');
 
+const colors = ['Pink', 'LightPink', 'HotPink', 'DeepPink', 'MediumVioletRed', 'PaleVioletRed'];
+
 userText.textContent = bopomofoSymbols.reduce((s, [bopomofoSymbol]) => {
   return s + bopomofoSymbol + ' ';
 }, '');
@@ -15,7 +17,7 @@ userText.textContent = bopomofoSymbols.reduce((s, [bopomofoSymbol]) => {
 let lastHorizontalButtonBox;
 bopomofoSymbols.forEach(([bopomofoSymbol, pinyin], i, arr) => {
   console.log('111');
-  if (!i || !(i % 10)) {
+  if (!i || !(i % 9)) {
     console.log('1112');
     if (i > 0) {
       buttonArea.append(lastHorizontalButtonBox, nbsp);
@@ -24,6 +26,7 @@ bopomofoSymbols.forEach(([bopomofoSymbol, pinyin], i, arr) => {
   }
   lastHorizontalButtonBox.append(
     jml('button', {
+      style: 'color: black; background-color: ' + colors[i % 6],
       title: bopomofoSymbol,
       dataset: {bopomofoSymbol},
       $on: {
