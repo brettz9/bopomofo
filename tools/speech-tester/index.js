@@ -1,4 +1,4 @@
-import {jml, $} from '../../vendor/jamilih/dist/jml-es.js';
+import {jml, $, nbsp} from '../../vendor/jamilih/dist/jml-es.js';
 import {bopomofoSymbols} from '../../src/index.js';
 
 const synth = window.speechSynthesis;
@@ -6,10 +6,38 @@ const voiceSelect = $('#voices');
 const playButton = $('#play');
 const cancelButton = $('#cancel');
 const userText = $('#userText');
+const buttonArea = $('#buttonArea');
 
 userText.textContent = bopomofoSymbols.reduce((s, [bopomofoSymbol]) => {
   return s + bopomofoSymbol + ' ';
 }, '');
+
+let lastHorizontalButtonBox;
+bopomofoSymbols.forEach(([bopomofoSymbol, pinyin], i, arr) => {
+  console.log('111');
+  if (!i || !(i % 10)) {
+    console.log('1112');
+    if (i > 0) {
+      buttonArea.append(lastHorizontalButtonBox, nbsp);
+    }
+    lastHorizontalButtonBox = jml('div', {class: 'hbox'});
+  }
+  lastHorizontalButtonBox.append(
+    jml('button', {
+      title: bopomofoSymbol,
+      dataset: {bopomofoSymbol},
+      $on: {
+        click () {
+          speak(this.dataset.bopomofoSymbol);
+        }
+      }
+    }, [pinyin]),
+    nbsp.repeat(2)
+  );
+  if (i === arr.length - 1) {
+    buttonArea.append(lastHorizontalButtonBox);
+  }
+});
 
 const voices = synth.getVoices().filter(({lang, name}) => {
     if (lang.startsWith('zh-CN')) {
@@ -20,17 +48,21 @@ const voices = synth.getVoices().filter(({lang, name}) => {
     }
 });
 
-// EVENTS
-
-playButton.addEventListener('click', function (e) {
-  e.preventDefault();
+function speak (text) {
   const selectedOption = voiceSelect.selectedOptions[0].dataset.name;
-  const utterance = new SpeechSynthesisUtterance(userText.value);
+  const utterance = new SpeechSynthesisUtterance(text);
   utterance.voice = voices.find(({name}) => {
       return name === selectedOption;
   });
   console.log('utterance.voice', utterance.voice);
   synth.speak(utterance);
+}
+
+// EVENTS
+
+playButton.addEventListener('click', function (e) {
+  e.preventDefault();
+  speak(userText.value);
 });
 
 cancelButton.addEventListener('click', function (e) {

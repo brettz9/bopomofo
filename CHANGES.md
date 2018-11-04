@@ -1,5 +1,9 @@
 # bopomofo CHANGES
 
+## 0.2.0
+
+- Enhancement: Add button area
+
 ## 0.1.0
 
 - Initial commit (Just the ability to play the speech in a textbox
