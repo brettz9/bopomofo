@@ -1,5 +1,7 @@
 import {jml, $, nbsp} from '../../vendor/jamilih/dist/jml-es.js';
+import loadStylesheets from '../../vendor/load-stylesheets/dist/index-es.js';
 import {bopomofoSymbols} from '../../src/index.js';
+import tippy from '../../vendor/tippy.js/dist/esm/tippy.js';
 
 const synth = window.speechSynthesis;
 const voiceSelect = $('#voices');
@@ -16,9 +18,7 @@ userText.textContent = bopomofoSymbols.reduce((s, [bopomofoSymbol]) => {
 
 let lastHorizontalButtonBox;
 bopomofoSymbols.forEach(([bopomofoSymbol, pinyin], i, arr) => {
-  console.log('111');
   if (!i || !(i % 9)) {
-    console.log('1112');
     if (i > 0) {
       buttonArea.append(lastHorizontalButtonBox, nbsp);
     }
@@ -26,9 +26,9 @@ bopomofoSymbols.forEach(([bopomofoSymbol, pinyin], i, arr) => {
   }
   lastHorizontalButtonBox.append(
     jml('button', {
+      class: 'bopomofoSymbol',
       style: 'color: black; background-color: ' + colors[i % 6],
-      title: bopomofoSymbol,
-      dataset: {bopomofoSymbol},
+      dataset: {bopomofoSymbol, tippy: bopomofoSymbol},
       $on: {
         click () {
           speak(this.dataset.bopomofoSymbol);
@@ -63,6 +63,13 @@ function speak (text) {
 
 // EVENTS
 
+(async () => {
+
+await loadStylesheets([
+    'index.css',
+    '../../vendor/tippy.js/dist/tippy.css'
+]);
+
 playButton.addEventListener('click', function (e) {
   e.preventDefault();
   speak(userText.value);
@@ -71,3 +78,11 @@ playButton.addEventListener('click', function (e) {
 cancelButton.addEventListener('click', function (e) {
   synth.cancel();
 });
+
+tippy('[data-tippy]', {
+    followCursor: true,
+    distance: 50,
+    placement: 'right'
+});
+
+})();
