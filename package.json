@@ -3,7 +3,8 @@
   "version": "0.1.0",
   "description": "Tool for studying bopomofo transliteration system",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "open http://localhost:8049 && static -p 8049",
+    "copy": "cp node_modules/jamilih/dist/jml-es.js vendor/jamilih/dist/jml-es.js"
   },
   "repository": {
     "type": "git",
@@ -24,6 +25,8 @@
   "engines": {},
   "dependencies": {},
   "devDependencies": {
-
+    "jamilih": "^0.43.0",
+    "node-static": "^0.7.11",
+    "opn-cli": "^3.1.0"
   }
 }

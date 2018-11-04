@@ -1,0 +1,14 @@
+.hbox {
+  display: flex;
+  flex-direction: row;
+}
+
+.vbox {
+  display: flex;
+  flex-direction: column;
+}
+
+.userText {
+  width: 800px;
+  height: 500px;
+}
