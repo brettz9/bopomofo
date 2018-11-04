@@ -25,13 +25,12 @@ const voices = synth.getVoices().filter(({lang, name}) => {
 playButton.addEventListener('click', function (e) {
   e.preventDefault();
   const selectedOption = voiceSelect.selectedOptions[0].dataset.name;
-  const utterThis = new SpeechSynthesisUtterance(userText.value);
-  utterThis.voice = voices.find(({name}) => {
+  const utterance = new SpeechSynthesisUtterance(userText.value);
+  utterance.voice = voices.find(({name}) => {
       return name === selectedOption;
   });
-  console.log('utterThis.voice', utterThis.voice);
-  utterThis.lang = 'zh-pny';
-  synth.speak(utterThis);
+  console.log('utterance.voice', utterance.voice);
+  synth.speak(utterance);
 });
 
 cancelButton.addEventListener('click', function (e) {
