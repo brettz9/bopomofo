@@ -17,7 +17,7 @@ function getRandomInt (max) {
 (async () => {
 
 const [_] = await Promise.all([
-    i18n({localesBasePath: '../../'}),
+    i18n({locales: [...navigator.languages, 'en-US'], localesBasePath: '../../'}),
     loadStylesheets([
         '../../vendor/dialog-polyfill/dialog-polyfill.css',
         '../../vendor/tippy.js/dist/tippy.css',
