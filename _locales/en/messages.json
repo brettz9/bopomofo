@@ -16,5 +16,8 @@
     },
     "tones": {
         "message": "Tones"
+    },
+    "first_tone_is_default": {
+        "message": "The first tone is the default in bopomofo, so no need to insert"
     }
 }

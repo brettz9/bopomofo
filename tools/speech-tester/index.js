@@ -90,7 +90,11 @@ Object.entries({consonants, medials, tones}).forEach(([type, symbols], i) => {
           dataset: {
               bopomofoSymbol,
               pronounce: bopomofoSymbol || pinyin, // Default for sake of first tone
-              tippyContent: type === 'tones' ? null : bopomofoSymbol
+              tippyContent: type === 'tones'
+                ? bopomofoSymbol
+                    ? null
+                    : _('first_tone_is_default')
+                : bopomofoSymbol
           },
           $on: {
             click () {
