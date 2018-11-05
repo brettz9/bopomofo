@@ -69,7 +69,6 @@ function init () {
                   dialog.$setRandomSyllable();
               });
               const dialog = jml('dialog', {
-                  style: 'display: block;',
                   $custom: {
                       $syllableCtr: -1,
                       $randomSyllables: [],
@@ -103,29 +102,32 @@ function init () {
                       }
                   }
               }, [
-                  buildFlashcardButton(),
-                  ['br'], ['br'],
-                  ['button', {$on: {
-                      click () {
-                          dialog.$setPreviousRandomSyllable();
-                      }
-                  }}, [
-                      '<-'
-                  ]],
-                  ['button', {$on: {
-                      click () {
-                          dialog.$setRandomSyllable();
-                      }
-                  }}, [
-                      '->'
-                  ]],
-                  ['br'], ['br'],
-                  ['button', {$on: {
-                      click () {
-                          dialog.close();
-                      }
-                  }}, [
-                      'Close'
+                  ['div', {style: 'display: block;'}, [
+                      buildFlashcardButton(),
+                      ['br'], ['br'],
+                      ['button', {$on: {
+                          click () {
+                              dialog.$setPreviousRandomSyllable();
+                          }
+                      }}, [
+                          '<-'
+                      ]],
+                      ['button', {$on: {
+                          click () {
+                              dialog.$setRandomSyllable();
+                          }
+                      }}, [
+                          '->'
+                      ]],
+                      ['br'], ['br'],
+                      ['button', {$on: {
+                          click () {
+                              dialog.close();
+                              dialog.remove();
+                          }
+                      }}, [
+                          'Close'
+                      ]]
                   ]]
               ], body);
               dialogPolyfill.registerDialog(dialog);
