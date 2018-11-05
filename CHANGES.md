@@ -1,5 +1,9 @@
 # bopomofo CHANGES
 
+## 0.5.0
+
+- i18n: Add Google-translated zh-CN; fix English title
+
 ## 0.4.0
 
 - Fix: "en-US" as default language for fallback when all user locales
