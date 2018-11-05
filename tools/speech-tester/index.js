@@ -83,7 +83,6 @@ function init () {
                       },
                       $setSyllable (syllableChars, syllableSound) {
                           $('#flashcardSound').replaceWith(jml(...buildFlashcardButton()));
-                          console.log('syllableSound', syllableSound, syllableChars);
                           flashcardSound.textContent = syllableSound;
                           flashcardSound.dataset.syllableChars = syllableChars;
                           flashcardSound.dataset.tippyContent = syllableChars;
