@@ -31,5 +31,8 @@
     },
     "backward": {
         "message": "<-"
+    },
+    "License_AGPL": {
+        "message": "License (AGPL)"
     }
 }

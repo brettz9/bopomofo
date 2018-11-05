@@ -237,6 +237,9 @@ Object.entries({consonants, medials, tones}).forEach(([type, symbols], i) => {
       }
     });
 });
+$('.buttonArea').append(nbsp, jml('a', {href: 'https://github.com/brettz9/bopomofo/blob/master/LICENSE-AGPL.txt'}, [
+    _('License_AGPL')
+]));
 
 // EVENTS
 
