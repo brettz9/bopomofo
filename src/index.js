@@ -6,6 +6,9 @@ export const tones = [
     ['˙', '˙']
 ];
 
+// First value is bopomofo, second is romanized, third is form if available
+//  independently (with the soft "-i" (ㄭ) vowel which is the only vowel item that
+// isn't represented independently except here with consonants)
 export const consonants = [
   ['ㄅ', 'b', null, [
       'ㄚ', 'ㄛ', 'ㄞ', 'ㄟ', 'ㄠ', 'ㄢ', 'ㄣ', 'ㄤ', 'ㄥ',
@@ -101,6 +104,7 @@ export const consonants = [
       'ㄨ', 'ㄨㄛ', 'ㄨㄟ', 'ㄨㄢ', 'ㄨㄣ', 'ㄨㄥ'
   ]],
 ];
+
 export const medials = [
     ['ㄚ', 'a', null],
     ['ㄛ', 'o', null],
@@ -115,9 +119,14 @@ export const medials = [
     ['ㄤ', 'ang', null],
     ['ㄥ', 'eng', null],
     ['ㄦ', 'er', null],
+    // Occurs in combination with the previous (excepting ê (ㄝ), ao (ㄠ), ou (ㄡ), er (ㄦ)
     ['ㄧ', 'i', 'yi'],
+    // Occurs in combination with the previous (excepting ê (ㄝ), ao (ㄠ), ou (ㄡ), er (ㄦ)
     ['ㄨ', 'u', 'wu'],
+    // Occurs in combination only with ê (ㄝ), an (ㄢ), en (ㄣ), eng (ㄥ) of the previous
     ['ㄩ', 'ü', 'yu'],
+    // Is different from the above in not being represented independently (except if
+    //  including in combination with consonants)
     ['ㄭ', 'i', 'i']
 ];
 

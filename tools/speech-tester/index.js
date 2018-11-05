@@ -25,6 +25,7 @@ const [_] = await Promise.all([
     ])
 ]);
 
+// Todo: Could add in option to add tones too
 function getRandomSyllable () {
     const [char1, sound1] = consonants[getRandomInt(consonants.length - 1)];
     const [char2, sound2] = medials[getRandomInt(medials.length - 1)];
