@@ -34,6 +34,14 @@ function getRandomSyllable () {
     ];
 }
 
+function buildFlashcardButton () {
+    return ['button', {id: 'flashcardSound', $on: {
+        click () {
+            speak(this.dataset.syllableChars);
+        }
+    }}];
+}
+
 function init () {
   document.title = _('title');
   jml('div', {class: 'hbox'}, [
@@ -74,10 +82,8 @@ function init () {
                           this.$setSyllable(...previousRandomSyllableInfo);
                       },
                       $setSyllable (syllableChars, syllableSound) {
-                          const flashcardSound = $('#flashcardSound');
-                          while (flashcardSound.hasChildNodes()) {
-                              flashcardSound.firstChild.remove();
-                          }
+                          $('#flashcardSound').replaceWith(jml(...buildFlashcardButton()));
+                          console.log('syllableSound', syllableSound, syllableChars);
                           flashcardSound.textContent = syllableSound;
                           flashcardSound.dataset.syllableChars = syllableChars;
                           flashcardSound.dataset.tippyContent = syllableChars;
@@ -98,11 +104,7 @@ function init () {
                       }
                   }
               }, [
-                  ['button', {id: 'flashcardSound', $on: {
-                      click () {
-                          speak(this.dataset.syllableChars);
-                      }
-                  }}],
+                  buildFlashcardButton(),
                   ['br'], ['br'],
                   ['button', {$on: {
                       click () {
