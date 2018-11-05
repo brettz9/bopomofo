@@ -105,7 +105,7 @@ export const consonants = [
   ]],
 ];
 
-export const rhymes = [
+export const finals = [
     // independent vowels and combinations thereof (i.e., all vowel combinations
     //  (without consonants) except the "-i" (ㄭ) which is not represented as an
     //  independent character in transcription)
@@ -115,7 +115,7 @@ export const rhymes = [
     'ㄩ', 'ㄩㄝ', 'ㄩㄢ', 'ㄩㄣ', 'ㄩㄥ'
 ];
 
-// Similar to rhymes, but only single items (and includes -i (ㄭ) as it is
+// Similar to finals, but only single items (and includes -i (ㄭ) as it is
 //  connectable to consonants even while not used independently in transcription)
 export const medials = [
     ['ㄚ', 'a', null],
