@@ -119,13 +119,13 @@ export const medials = [
     ['ㄤ', 'ang', null],
     ['ㄥ', 'eng', null],
     ['ㄦ', 'er', null],
-    // Occurs in combination with the previous (excepting ê (ㄝ), ao (ㄠ), ou (ㄡ), er (ㄦ)
+    // Occurs alone and followed by the previous (excepting ê (ㄝ), ao (ㄠ), ou (ㄡ), er (ㄦ)
     ['ㄧ', 'i', 'yi'],
-    // Occurs in combination with the previous (excepting ê (ㄝ), ao (ㄠ), ou (ㄡ), er (ㄦ)
+    // Occurs alone and followed by the previous (excepting ê (ㄝ), ao (ㄠ), ou (ㄡ), er (ㄦ)
     ['ㄨ', 'u', 'wu'],
-    // Occurs in combination only with ê (ㄝ), an (ㄢ), en (ㄣ), eng (ㄥ) of the previous
+    // Occurs alone and followed only by these among the previous: ê (ㄝ), an (ㄢ), en (ㄣ), eng (ㄥ)
     ['ㄩ', 'ü', 'yu'],
-    // Is different from the above in not being represented independently (except if
+    // Is different from all of the above in not being represented independently (except if
     //  including in combination with consonants)
     ['ㄭ', 'i', 'i']
 ];
