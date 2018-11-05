@@ -105,6 +105,8 @@ export const consonants = [
   ]],
 ];
 
+// These are all present within `medials`, but indicate which can be a complete
+//  ending vowel combination
 export const finals = [
     // independent vowels and combinations thereof (i.e., all vowel combinations
     //  (without consonants) except the "-i" (ㄭ) which is not represented as an

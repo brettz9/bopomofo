@@ -1,7 +1,7 @@
 /* globals dialogPolyfill */
 import {jml, $, body, nbsp} from '../../vendor/jamilih/dist/jml-es.js';
 import loadStylesheets from '../../vendor/load-stylesheets/dist/index-es.js';
-import {consonants, medials, tones} from '../../src/index.js';
+import {consonants, medials, finals, tones} from '../../src/index.js';
 import tippy from '../../vendor/tippy.js/dist/esm/tippy.js';
 import {i18n} from '../../vendor/i18n-safe/index-es.js';
 import '../../vendor/dialog-polyfill/dialog-polyfill.js';
@@ -25,14 +25,26 @@ const [_] = await Promise.all([
     ])
 ]);
 
+function findPhoneticsForChars (finalChars) {
+    return [...finalChars].reduce((s, finalChar) => {
+        return s + medials.find(([chr]) => {
+            return finalChar === chr;
+        })[1];
+    }, '')
+}
+
+const possibleBopomofoSyllables = [...consonants.flatMap(([c, phonetic, , availableFinals]) => {
+    return availableFinals.map((finalChars) => {
+        return [c + finalChars, phonetic + findPhoneticsForChars(finalChars)];
+    });
+}), ...finals.map((r) => {
+    return [r, findPhoneticsForChars(r)];
+})];
+console.log('possibleBopomofoSyllables', possibleBopomofoSyllables);
+
 // Todo: Could add in option to add tones too
 function getRandomSyllable () {
-    const [char1, sound1] = consonants[getRandomInt(consonants.length - 1)];
-    const [char2, sound2] = medials[getRandomInt(medials.length - 1)];
-    return [
-        char1 + char2,
-        sound1 + sound2
-    ];
+    return possibleBopomofoSyllables[getRandomInt(possibleBopomofoSyllables.length - 1)];
 }
 
 function buildFlashcardButton () {
