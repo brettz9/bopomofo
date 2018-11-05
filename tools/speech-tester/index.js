@@ -1,23 +1,38 @@
+/* globals dialogPolyfill */
 import {jml, $, body, nbsp} from '../../vendor/jamilih/dist/jml-es.js';
 import loadStylesheets from '../../vendor/load-stylesheets/dist/index-es.js';
 import {consonants, medials, tones} from '../../src/index.js';
 import tippy from '../../vendor/tippy.js/dist/esm/tippy.js';
 import {i18n} from '../../vendor/i18n-safe/index-es.js';
+import '../../vendor/dialog-polyfill/dialog-polyfill.js';
 
 const synth = window.speechSynthesis;
 const colors = ['Pink', 'LightPink', 'HotPink', 'DeepPink', 'MediumVioletRed', 'PaleVioletRed'];
 const bopomofoSymbols = [...consonants, ...medials, ...tones];
 const symbolsPerRow = 9;
+function getRandomInt (max) {
+  return Math.floor(Math.random() * Math.floor(max));
+}
 
 (async () => {
 
 const [_] = await Promise.all([
     i18n({localesBasePath: '../../'}),
     loadStylesheets([
-        'index.css',
-        '../../vendor/tippy.js/dist/tippy.css'
+        '../../vendor/dialog-polyfill/dialog-polyfill.css',
+        '../../vendor/tippy.js/dist/tippy.css',
+        'index.css'
     ])
 ]);
+
+function getRandomSyllable () {
+    const [char1, sound1] = consonants[getRandomInt(consonants.length - 1)];
+    const [char2, sound2] = medials[getRandomInt(medials.length - 1)];
+    return [
+        char1 + char2,
+        sound1 + sound2
+    ];
+}
 
 function init () {
   document.title = _('title');
@@ -26,10 +41,96 @@ function init () {
       ['div', {class: 'hbox'}, [
         ['select', {id: 'voices'}],
         nbsp,
-        ['button', {id: 'play'}, [_('Play')]]
+        ['button', {id: 'play', $on: {
+            click () {
+                e.preventDefault();
+                speak(userText.value);
+            }
+        }}, [_('Play')]]
       ]],
       nbsp,
-      ['button', {id: 'cancel'}, [_('Cancel')]]
+      ['button', {id: 'cancel', $on: {
+          click () {
+              synth.cancel();
+          }
+      }}, [_('Cancel')]],
+      nbsp,
+      ['button', {$on: {
+          click () {
+              setTimeout(() => {
+                  dialog.$setRandomSyllable();
+              });
+              const dialog = jml('dialog', {
+                  style: 'display: block;',
+                  $custom: {
+                      $syllableCtr: -1,
+                      $randomSyllables: [],
+                      $setPreviousRandomSyllable () {
+                          if (this.$syllableCtr < 1) {
+                              return;
+                          }
+                          const previousRandomSyllableInfo =
+                            this.$randomSyllables[--this.$syllableCtr];
+                          this.$setSyllable(...previousRandomSyllableInfo);
+                      },
+                      $setSyllable (syllableChars, syllableSound) {
+                          const flashcardSound = $('#flashcardSound');
+                          while (flashcardSound.hasChildNodes()) {
+                              flashcardSound.firstChild.remove();
+                          }
+                          flashcardSound.textContent = syllableSound;
+                          flashcardSound.dataset.syllableChars = syllableChars;
+                          flashcardSound.dataset.tippyContent = syllableChars;
+                          tippy('button[data-tippy-content]', {
+                              followCursor: true,
+                              distance: 100,
+                              placement: 'right'
+                          });
+                      },
+                      $setRandomSyllable () {
+                          const syllableInfo = (
+                              this.$syllableCtr >= this.$randomSyllables.length - 1
+                          )
+                            ? getRandomSyllable()
+                            : this.$randomSyllables[this.$syllableCtr + 1];
+                          this.$setSyllable(...syllableInfo);
+                          this.$randomSyllables[++this.$syllableCtr] = syllableInfo;
+                      }
+                  }
+              }, [
+                  ['button', {id: 'flashcardSound', $on: {
+                      click () {
+                          speak(this.dataset.syllableChars);
+                      }
+                  }}],
+                  ['br'], ['br'],
+                  ['button', {$on: {
+                      click () {
+                          dialog.$setPreviousRandomSyllable();
+                      }
+                  }}, [
+                      '<-'
+                  ]],
+                  ['button', {$on: {
+                      click () {
+                          dialog.$setRandomSyllable();
+                      }
+                  }}, [
+                      '->'
+                  ]],
+                  ['br'], ['br'],
+                  ['button', {$on: {
+                      click () {
+                          dialog.close();
+                      }
+                  }}, [
+                      'Close'
+                  ]]
+              ], body);
+              dialogPolyfill.registerDialog(dialog);
+              dialog.showModal();
+          }
+      }}, ['Flashcards']]
     ]],
     nbsp.repeat(2),
     ['textarea', {id: 'userText', class: 'userText'}, [
@@ -44,8 +145,6 @@ function init () {
 init();
 
 const voiceSelect = $('#voices');
-const playButton = $('#play');
-const cancelButton = $('#cancel');
 const userText = $('#userText');
 const voices = synth.getVoices().filter(({lang, name}) => {
     if (lang.startsWith('zh-CN')) {
@@ -62,7 +161,7 @@ function speak (text) {
   utterance.voice = voices.find(({name}) => {
       return name === selectedOption;
   });
-  console.log('utterance.voice', utterance.voice);
+  // console.log('utterance.voice', utterance.voice);
   synth.speak(utterance);
 }
 
@@ -109,7 +208,6 @@ Object.entries({consonants, medials, tones}).forEach(([type, symbols], i) => {
               } else {
                 userText.value += bopomofoSymbol;
                 userText.selectionStart = userText.value.length;
-                console.log('userText.selection', userText.selectionStart, userText.selectionEnd);
               }
               userText.focus();
 
@@ -137,17 +235,8 @@ window.addEventListener('click', function ({target}) {
   // Focus doesn't seem to always detect (at least in Firefox)
   if (!target.classList.contains('bopomofoSymbol')) {
     lastFocusedElement = target;
-    console.log('lastFocusedElement', lastFocusedElement);
+    // console.log('lastFocusedElement', lastFocusedElement);
   }
-});
-
-playButton.addEventListener('click', function (e) {
-  e.preventDefault();
-  speak(userText.value);
-});
-
-cancelButton.addEventListener('click', function (e) {
-  synth.cancel();
 });
 
 tippy('[data-tippy-content]', {
