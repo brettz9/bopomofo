@@ -1,5 +1,11 @@
 # bopomofo CHANGES
 
+## 0.4.0
+
+- Fix: "en-US" as default language for fallback when all user locales
+    are unavailable in the app (Thanks @Gcaufy!)
+- Demo: Add license link to demo
+
 ## 0.3.0
 
 - Breaking change (API): Export format (see `src/index.js`)
