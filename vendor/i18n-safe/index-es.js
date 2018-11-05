@@ -52,19 +52,27 @@ const promiseChainForValues = (values, cb) => {
  *  the optional key "dom" which if set to `true` optimizes when DOM elements are
  *  present; or 2) rejects if no strings are found
  */
-export const i18n = async function i18n ({locales = navigator.languages, defaults, localesBasePath = '.'}) {
-    const strings = await promiseChainForValues(locales, async function getLocale (locale) {
-        const url = `${localesBasePath.replace(/\/$/, '')}/_locales/${locale}/messages.json`;
-        try {
-            return await (await fetch(url)).json();
-        } catch (err) {
-            if (!locale.includes('-')) {
-                throw new Error('Locale not available');
+export const i18n = async function i18n ({
+    locales = navigator.languages,
+    defaultLocales = ['en-US'],
+    defaults,
+    localesBasePath = '.'
+}) {
+    const strings = await promiseChainForValues(
+        [...locales, ...defaultLocales],
+        async function getLocale (locale) {
+            const url = `${localesBasePath.replace(/\/$/, '')}/_locales/${locale}/messages.json`;
+            try {
+                return await (await fetch(url)).json();
+            } catch (err) {
+                if (!locale.includes('-')) {
+                    throw new Error('Locale not available');
+                }
+                // Try without hyphen
+                return getLocale(locale.replace(/-.*$/, ''));
             }
-            // Try without hyphen
-            return getLocale(locale.replace(/-.*$/, ''));
         }
-    });
+    );
     return (key, substitutions, {dom} = {}) => {
         const bracketRegex = /\{([^}]*?)(?:\|([^}]*))?\}/g;
         let returnsDOM = false;
