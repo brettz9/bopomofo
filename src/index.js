@@ -8,7 +8,7 @@ export const tones = [
 
 // First value is bopomofo, second is romanized, third is form if available
 //  independently (with the soft "-i" (ㄭ) vowel which is the only vowel item that
-// isn't represented independently except here with consonants)
+// isn't represented independently in transcription except here with consonants)
 export const consonants = [
   ['ㄅ', 'b', null, [
       'ㄚ', 'ㄛ', 'ㄞ', 'ㄟ', 'ㄠ', 'ㄢ', 'ㄣ', 'ㄤ', 'ㄥ',
@@ -105,6 +105,18 @@ export const consonants = [
   ]],
 ];
 
+export const rhymes = [
+    // independent vowels and combinations thereof (i.e., all vowel combinations
+    //  (without consonants) except the "-i" (ㄭ) which is not represented as an
+    //  independent character in transcription)
+    'ㄚ', 'ㄛ', 'ㄜ', 'ㄝ', 'ㄞ', 'ㄟ', 'ㄠ', 'ㄡ', 'ㄢ', 'ㄣ', 'ㄤ', 'ㄥ', 'ㄦ',
+    'ㄧ', 'ㄧㄚ', 'ㄧㄛ', 'ㄧㄝ', 'ㄧㄞ', 'ㄧㄠ', 'ㄧㄡ', 'ㄧㄢ', 'ㄧㄣ', 'ㄧㄤ', 'ㄧㄥ',
+    'ㄨ', 'ㄨㄚ', 'ㄨㄛ', 'ㄨㄞ', 'ㄨㄟ', 'ㄨㄢ', 'ㄨㄣ', 'ㄨㄤ', 'ㄨㄥ',
+    'ㄩ', 'ㄩㄝ', 'ㄩㄢ', 'ㄩㄣ', 'ㄩㄥ'
+];
+
+// Similar to rhymes, but only single items (and includes -i (ㄭ) as it is
+//  connectable to consonants even while not used independently in transcription)
 export const medials = [
     ['ㄚ', 'a', null],
     ['ㄛ', 'o', null],
@@ -125,15 +137,7 @@ export const medials = [
     ['ㄨ', 'u', 'wu'],
     // Occurs alone and followed only by these among the previous: ê (ㄝ), an (ㄢ), en (ㄣ), eng (ㄥ)
     ['ㄩ', 'ü', 'yu'],
-    // Is different from all of the above in not being represented independently (except if
-    //  including in combination with consonants)
+    // Is different from all of the above in not being represented independently in
+    //  transcription (except if including in combination with consonants)
     ['ㄭ', 'i', 'i']
-];
-
-export const rhymes = [
-    // independent vowels (i.e., all vowel combinations (without consonants) except the "-i" (ㄭ))
-    'ㄚ', 'ㄛ', 'ㄜ', 'ㄝ', 'ㄞ', 'ㄟ', 'ㄠ', 'ㄡ', 'ㄢ', 'ㄣ', 'ㄤ', 'ㄥ', 'ㄦ',
-    'ㄧ', 'ㄧㄚ', 'ㄧㄛ', 'ㄧㄝ', 'ㄧㄞ', 'ㄧㄠ', 'ㄧㄡ', 'ㄧㄢ', 'ㄧㄣ', 'ㄧㄤ', 'ㄧㄥ',
-    'ㄨ', 'ㄨㄚ', 'ㄨㄛ', 'ㄨㄞ', 'ㄨㄟ', 'ㄨㄢ', 'ㄨㄣ', 'ㄨㄤ', 'ㄨㄥ',
-    'ㄩ', 'ㄩㄝ', 'ㄩㄢ', 'ㄩㄣ', 'ㄩㄥ'
 ];
