@@ -1,0 +1,38 @@
+{
+    "title": {
+        "message": "注音符號工具"
+    },
+    "Play": {
+        "message": "播放"
+    },
+    "Cancel": {
+        "message": "取消"
+    },
+    "consonants": {
+        "message": "辅音"
+    },
+    "medials": {
+        "message": "内侧"
+    },
+    "tones": {
+        "message": "音"
+    },
+    "first_tone_is_default": {
+        "message": "第一个音是注音符號的默认音，所以不需要插入"
+    },
+    "Close": {
+        "message": "关闭"
+    },
+    "Flashcards": {
+        "message": "抽认卡"
+    },
+    "forward": {
+        "message": "->"
+    },
+    "backward": {
+        "message": "<-"
+    },
+    "License_AGPL": {
+        "message": "许可证（AGPL）"
+    }
+}
