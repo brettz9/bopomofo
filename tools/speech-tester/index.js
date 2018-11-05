@@ -88,12 +88,28 @@ Object.entries({consonants, medials, tones}).forEach(([type, symbols], i) => {
           class: 'bopomofoSymbol',
           style: 'color: black; background-color: ' + colors[j % 6],
           dataset: {
-              bopomofoSymbol: bopomofoSymbol || pinyin, // Default for sake of first tone
+              bopomofoSymbol,
+              pronounce: bopomofoSymbol || pinyin, // Default for sake of first tone
               tippyContent: type === 'tones' ? null : bopomofoSymbol
           },
           $on: {
             click () {
-              speak(this.dataset.bopomofoSymbol);
+              const {bopomofoSymbol} = this.dataset;
+              const {value, selectionStart, selectionEnd} = userText;
+              if (lastFocusedElement === userText) {
+                userText.value = value.slice(0, selectionStart) +
+                  bopomofoSymbol +
+                  value.slice(selectionEnd);
+                userText.selectionStart = userText.selectionEnd =
+                    selectionStart + bopomofoSymbol.length;
+              } else {
+                userText.value += bopomofoSymbol;
+                userText.selectionStart = userText.value.length;
+                console.log('userText.selection', userText.selectionStart, userText.selectionEnd);
+              }
+              userText.focus();
+
+              speak(this.dataset.pronounce);
             }
           }
         }, [pinyin]),
@@ -106,6 +122,20 @@ Object.entries({consonants, medials, tones}).forEach(([type, symbols], i) => {
 });
 
 // EVENTS
+
+let lastFocusedElement;
+// Focus listener is needed for likes of tab control selection
+//   but focus is apparently needed for clicks on non-form-controls
+document.addEventListener('focus', function ({target}) {
+    lastFocusedElement = target;
+}, true); // Must be capturing for `focus` or `blur`
+window.addEventListener('click', function ({target}) {
+  // Focus doesn't seem to always detect (at least in Firefox)
+  if (!target.classList.contains('bopomofoSymbol')) {
+    lastFocusedElement = target;
+    console.log('lastFocusedElement', lastFocusedElement);
+  }
+});
 
 playButton.addEventListener('click', function (e) {
   e.preventDefault();
