@@ -40,7 +40,6 @@ const possibleBopomofoSyllables = [...consonants.flatMap(([c, phonetic, , availa
 }), ...finals.map((r) => {
     return [r, findPhoneticsForChars(r)];
 })];
-console.log('possibleBopomofoSyllables', possibleBopomofoSyllables);
 
 // Todo: Could add in option to add tones too
 function getRandomSyllable () {
