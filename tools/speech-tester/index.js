@@ -42,7 +42,7 @@ function init () {
         ['select', {id: 'voices'}],
         nbsp,
         ['button', {id: 'play', $on: {
-            click () {
+            click (e) {
                 e.preventDefault();
                 speak(userText.value);
             }
