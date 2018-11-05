@@ -1,4 +1,12 @@
-const bopomofoSymbols = [
+export const tones = [
+    ['', 'ˉ'], // First deliberately left empty as first tone is default for bomofo
+    ['ˊ', 'ˊ'],
+    ['ˇ', 'ˇ'],
+    ['ˋ', 'ˋ'],
+    ['˙', '˙']
+];
+
+export const consonants = [
   ['ㄅ', 'b'],
   ['ㄆ', 'p'],
   ['ㄇ', 'm'],
@@ -19,24 +27,24 @@ const bopomofoSymbols = [
   ['ㄖ', 'ri/r-'],
   ['ㄗ', 'zi/z-'],
   ['ㄘ', 'ci/c-'],
-  ['ㄙ', 'si/s-'],
-
-  ['ㄚ', 'a'],
-  ['ㄛ', 'o'],
-  ['ㄜ', 'e'],
-  ['ㄝ', 'ê'],
-  ['ㄞ', 'ai'],
-  ['ㄟ', 'ei'],
-  ['ㄠ', 'ao'],
-  ['ㄡ', 'ou'],
-  ['ㄢ', 'an'],
-  ['ㄣ', 'en'],
-  ['ㄤ', 'ang'],
-  ['ㄥ', 'eng'],
-  ['ㄦ', 'er'],
-  ['ㄧ', 'yi/-i'],
-  ['ㄨ', 'wu/-u'],
-  ['ㄩ', 'yu/-ü'],
-  ['ㄭ/ㄭ', '-i']
+  ['ㄙ', 'si/s-']
 ];
-export {bopomofoSymbols};
+export const medials = [
+    ['ㄚ', 'a'],
+    ['ㄛ', 'o'],
+    ['ㄜ', 'e'],
+    ['ㄝ', 'ê'],
+    ['ㄞ', 'ai'],
+    ['ㄟ', 'ei'],
+    ['ㄠ', 'ao'],
+    ['ㄡ', 'ou'],
+    ['ㄢ', 'an'],
+    ['ㄣ', 'en'],
+    ['ㄤ', 'ang'],
+    ['ㄥ', 'eng'],
+    ['ㄦ', 'er'],
+    ['ㄧ', 'yi/-i'],
+    ['ㄨ', 'wu/-u'],
+    ['ㄩ', 'yu/-ü'],
+    ['ㄭ/ㄭ', '-i']
+];

@@ -1,0 +1,20 @@
+{
+    "title": {
+        "message": "Speech test"
+    },
+    "Play": {
+        "message": "Play"
+    },
+    "Cancel": {
+        "message": "Cancel"
+    },
+    "consonants": {
+        "message": "Consonants"
+    },
+    "medials": {
+        "message": "Medials"
+    },
+    "tones": {
+        "message": "Tones"
+    }
+}
