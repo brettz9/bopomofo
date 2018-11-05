@@ -19,5 +19,17 @@
     },
     "first_tone_is_default": {
         "message": "The first tone is the default in bopomofo, so no need to insert"
+    },
+    "Close": {
+        "message": "Close"
+    },
+    "Flashcards": {
+        "message": "Flashcards"
+    },
+    "forward": {
+        "message": "->"
+    },
+    "backward": {
+        "message": "<-"
     }
 }

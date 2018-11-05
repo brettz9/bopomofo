@@ -122,14 +122,14 @@ function init () {
                               dialog.$setPreviousRandomSyllable();
                           }
                       }}, [
-                          '<-'
+                          _('backward')
                       ]],
                       ['button', {$on: {
                           click () {
                               dialog.$setRandomSyllable();
                           }
                       }}, [
-                          '->'
+                          _('forward')
                       ]],
                       ['br'], ['br'],
                       ['button', {$on: {
@@ -138,14 +138,14 @@ function init () {
                               dialog.remove();
                           }
                       }}, [
-                          'Close'
+                          _('Close')
                       ]]
                   ]]
               ], body);
               dialogPolyfill.registerDialog(dialog);
               dialog.showModal();
           }
-      }}, ['Flashcards']]
+      }}, [_('Flashcards')]]
     ]],
     nbsp.repeat(2),
     ['textarea', {id: 'userText', class: 'userText'}, [
