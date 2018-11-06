@@ -143,3 +143,88 @@ export const medials = [
     //  transcription (except if including in combination with consonants)
     ['ㄭ', 'i', 'i']
 ];
+
+export const finalsToPinyin = [
+  ...medials.map(([bpmf, pinyin]) => { // Drop the third array item
+    return [bpmf, pinyin];
+  }),
+  ...finals.map((finalChars) => {
+    // Those within the switch are irregular relative to how the second character
+    //  is transformed; there are also, in a few cases, irregularities in how the
+    //  first character is transformed as well:
+    // 1. In each of the two exceptional instances, 'ㄝ' (ê) is "e" when used in
+    //    a final ("ê" is only used outside of a final context--when by itself)
+    // 2. For two the three exceptional instances (where "u" and "ü" would be
+    //    expected), 'ㄥ', changes from the expected (to "o" and "i")
+    switch (finalChars) {
+    // ㄧ (i):
+    case 'ㄧㄝ': // (independently as i + ê)
+      return [finalChars, 'ie'];
+    case 'ㄧㄡ': // (independently as i + ou)
+      return [finalChars, 'iu'];
+    case 'ㄧㄣ': // (independently as i + en)
+      return [finalChars, 'in'];
+    case 'ㄧㄥ': // (independently as i + eng)
+      return [finalChars, 'ing'];
+    // ㄨ (u)
+    case 'ㄨㄟ': // (independently as u + ei)
+      return [finalChars, 'ui'];
+    case 'ㄨㄣ': // (independently as u + en)
+      return [finalChars, 'un'];
+    case 'ㄨㄥ': // (independently as u + eng)
+      return [finalChars, 'ong'];
+    // ㄩ (ü)
+    case 'ㄩㄝ': // (independently as ü + ê)
+      return [finalChars, 'üe'];
+    case 'ㄩㄣ': // (independently as ü + en)
+      return [finalChars, 'ün'];
+    case 'ㄩㄥ': // (independently as ü + eng)
+      return [finalChars, 'iong'];
+    }
+    return [
+      finalChars, // BPMF
+      [...finalChars].reduce((s, finalChar) => { // Phonetics
+          return s + medials.find(([chr]) => {
+              return finalChar === chr;
+          })[1];
+      }, '')
+    ];
+  })
+];
+
+export function findPinyinForBopomofoChars (finalChars, component = true) {
+  if (component && finalChars === 'ㄝ') { // 'ê' is only used independently
+    return 'e';
+  }
+  const result = finalsToPinyin.find(([bpmf /* , pinyin */ ]) => {
+    return bpmf === finalChars;
+  });
+  if (!result) {
+    return undefined;
+  }
+  return result[1];
+}
+export const possibleBopomofoSyllables = [...consonants.flatMap(([c, phonetic, /* fullPhonetic */ , availableFinals]) => {
+    return availableFinals.map((finalChars) => {
+        return [
+          (c +
+            // 'ㄭ' is not transcribed so don't pass here, but we do pass to
+            //  `findPinyinForBopomofoChars` so it can add `i`
+            (finalChars === 'ㄭ' ? '' : finalChars)
+          ),
+          phonetic + findPinyinForBopomofoChars(finalChars)
+        ];
+    });
+}), ...finals.map((r) => {
+    return [r, findPinyinForBopomofoChars(r, false)];
+})];
+
+function getRandomInt (max) {
+  return Math.floor(Math.random() * Math.floor(max));
+}
+// Todo: Could add in option to add tones too (and use in GUI tool)
+export function getRandomSyllable () {
+    return possibleBopomofoSyllables[getRandomInt(possibleBopomofoSyllables.length - 1)];
+}
+
+// console.log('possibleBopomofoSyllables', possibleBopomofoSyllables);

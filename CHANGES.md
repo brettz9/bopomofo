@@ -1,5 +1,10 @@
 # bopomofo CHANGES
 
+## 0.6.0
+
+- Fix: Possible syllables were returning pinyin incorrectly in some cases;
+   fixed as export and within flashcards 
+
 ## 0.5.0
 
 - i18n: Add Google-translated zh-CN; fix English title

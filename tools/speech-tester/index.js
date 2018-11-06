@@ -1,7 +1,7 @@
 /* globals dialogPolyfill */
 import {jml, $, body, nbsp} from '../../vendor/jamilih/dist/jml-es.js';
 import loadStylesheets from '../../vendor/load-stylesheets/dist/index-es.js';
-import {consonants, medials, finals, tones} from '../../src/index.js';
+import {consonants, medials, tones, getRandomSyllable} from '../../src/index.js';
 import tippy from '../../vendor/tippy.js/dist/esm/tippy.js';
 import {i18n} from '../../vendor/i18n-safe/index-es.js';
 import '../../vendor/dialog-polyfill/dialog-polyfill.js';
@@ -10,9 +10,6 @@ const synth = window.speechSynthesis;
 const colors = ['Pink', 'LightPink', 'HotPink', 'DeepPink', 'MediumVioletRed', 'PaleVioletRed'];
 const bopomofoSymbols = [...consonants, ...medials, ...tones];
 const symbolsPerRow = 9;
-function getRandomInt (max) {
-  return Math.floor(Math.random() * Math.floor(max));
-}
 
 (async () => {
 
@@ -24,27 +21,6 @@ const [_] = await Promise.all([
         'index.css'
     ])
 ]);
-
-function findPhoneticsForChars (finalChars) {
-    return [...finalChars].reduce((s, finalChar) => {
-        return s + medials.find(([chr]) => {
-            return finalChar === chr;
-        })[1];
-    }, '')
-}
-
-const possibleBopomofoSyllables = [...consonants.flatMap(([c, phonetic, , availableFinals]) => {
-    return availableFinals.map((finalChars) => {
-        return [c + finalChars, phonetic + findPhoneticsForChars(finalChars)];
-    });
-}), ...finals.map((r) => {
-    return [r, findPhoneticsForChars(r)];
-})];
-
-// Todo: Could add in option to add tones too
-function getRandomSyllable () {
-    return possibleBopomofoSyllables[getRandomInt(possibleBopomofoSyllables.length - 1)];
-}
 
 function buildFlashcardButton () {
     return ['button', {id: 'flashcardSound', $on: {
