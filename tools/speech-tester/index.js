@@ -1,14 +1,18 @@
 /* globals dialogPolyfill */
 import {jml, $, body, nbsp} from '../../vendor/jamilih/dist/jml-es.js';
 import loadStylesheets from '../../vendor/load-stylesheets/dist/index-es.js';
-import {consonants, medials, tones, getRandomSyllable} from '../../src/index.js';
+import {
+  consonants,
+  finals_single, finals_double, finals_single_nontranscriptional,
+  tones, getRandomSyllable
+} from '../../src/index.js';
 import tippy from '../../vendor/tippy.js/dist/esm/tippy.js';
 import {i18n} from '../../vendor/i18n-safe/index-es.js';
 import '../../vendor/dialog-polyfill/dialog-polyfill.js';
 
 const synth = window.speechSynthesis;
 const colors = ['Pink', 'LightPink', 'HotPink', 'DeepPink', 'MediumVioletRed', 'PaleVioletRed'];
-const bopomofoSymbols = [...consonants, ...medials, ...tones];
+const bopomofoSymbols = [...consonants, ...finals_single, ...finals_double, ...tones];
 const symbolsPerRow = 9;
 
 (async () => {
@@ -158,7 +162,13 @@ function speak (text) {
 
 let lastHorizontalButtonBox;
 
-Object.entries({consonants, medials, tones}).forEach(([type, symbols], i) => {
+Object.entries({
+  consonants,
+  finals_single,
+  finals_single_nontranscriptional,
+  finals_double,
+  tones
+}).forEach(([type, symbols], i) => {
     $('.buttonArea').append(jml('div', {id: type}));
     const buttonAreaType = $(`#${type}`);
     buttonAreaType.append(
@@ -180,11 +190,13 @@ Object.entries({consonants, medials, tones}).forEach(([type, symbols], i) => {
           dataset: {
               bopomofoSymbol,
               pronounce: bopomofoSymbol || pinyin, // Default for sake of first tone
-              tippyContent: type === 'tones'
-                ? bopomofoSymbol
-                    ? null
-                    : _('first_tone_is_default')
-                : bopomofoSymbol
+              tippyContent: type === 'finals_single_nontranscriptional'
+                ? _('finals_single_nontranscriptional_note')
+                : type === 'tones'
+                  ? bopomofoSymbol
+                      ? null
+                      : _('first_tone_is_default')
+                  : bopomofoSymbol
           },
           $on: {
             click () {

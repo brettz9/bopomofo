@@ -145,9 +145,7 @@ export const medials = [
 ];
 
 export const finalsToPinyin = [
-  ...medials.map(([bpmf, pinyin]) => { // Drop the third array item
-    return [bpmf, pinyin];
-  }),
+  medials.slice(-1)[0].slice(0, 2), // We only need `ㄭ` as others are part of finals as well
   ...finals.map((finalChars) => {
     // Those within the switch are irregular relative to how the second character
     //  is transformed; there are also, in a few cases, irregularities in how the
@@ -191,6 +189,7 @@ export const finalsToPinyin = [
     ];
   })
 ];
+// console.log('finalsToPinyin', finalsToPinyin);
 
 export function findPinyinForBopomofoChars (finalChars, component = true) {
   if (component && finalChars === 'ㄝ') { // 'ê' is only used independently
@@ -226,5 +225,9 @@ function getRandomInt (max) {
 export function getRandomSyllable () {
     return possibleBopomofoSyllables[getRandomInt(possibleBopomofoSyllables.length - 1)];
 }
+
+export const finals_single_nontranscriptional = finalsToPinyin.slice(0, 1);
+export const finals_single = finalsToPinyin.slice(1).filter(([bpmf]) => bpmf.length === 1);
+export const finals_double = finalsToPinyin.filter(([bpmf]) => bpmf.length > 1);
 
 // console.log('possibleBopomofoSyllables', possibleBopomofoSyllables);

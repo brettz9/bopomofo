@@ -1,9 +1,13 @@
 # bopomofo CHANGES
 
+## 0.7.0
+
+- Fix: Avoid duplicates in `finalsToPinyin`
+
 ## 0.6.0
 
 - Fix: Possible syllables were returning pinyin incorrectly in some cases;
-   fixed as export and within flashcards 
+   fixed as export and within flashcards
 
 ## 0.5.0
 

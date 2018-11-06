@@ -14,6 +14,18 @@
     "medials": {
         "message": "内侧"
     },
+    "finals_single": {
+      "message": "最后（单）"
+    },
+    "finals_double": {
+      "message": "最后（双）"
+    },
+    "finals_single_nontranscriptional": {
+        "message": "最终（单 - 非转录）"
+    },
+    "finals_single_nontranscriptional_note": {
+        "message": "此声音已被识别，但未作为转录的一部分使用或需要。 假设辅音使用它。 此外，您的浏览器字体可能不支持表示的字符。"
+    },
     "tones": {
         "message": "音"
     },
