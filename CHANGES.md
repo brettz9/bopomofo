@@ -3,6 +3,10 @@
 ## 0.7.0
 
 - Fix: Avoid duplicates in `finalsToPinyin`
+- Enhancement: Export `finals_single`, `finals_double`,
+  `finals_single_nontranscriptional`
+- Enhancement: Add finals as buttons instead of only medials, including
+  special note for nontranscriptional final
 
 ## 0.6.0
 
