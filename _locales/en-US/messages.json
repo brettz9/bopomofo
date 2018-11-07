@@ -8,6 +8,15 @@
     "Cancel": {
         "message": "Cancel"
     },
+    "Clear": {
+        "message": "Clear"
+    },
+    "Preferences": {
+        "message": "Preferences"
+    },
+    "Pronounce_component_syllables": {
+        "message": "Pronounce component syllables"
+    },
     "consonants": {
         "message": "Consonants"
     },

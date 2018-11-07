@@ -1,5 +1,11 @@
 # bopomofo CHANGES
 
+## 0.8.0
+
+- Enhancement: Add preference to pronounce component syllables
+- Enhancement: Button to clear textarea
+- Change: Allow first tone to be input anyways despite lack of necessity
+
 ## 0.7.0
 
 - Fix: Avoid duplicates in `finalsToPinyin`

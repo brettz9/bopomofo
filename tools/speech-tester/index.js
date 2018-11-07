@@ -8,6 +8,7 @@ import {
 } from '../../src/index.js';
 import tippy from '../../vendor/tippy.js/dist/esm/tippy.js';
 import {i18n} from '../../vendor/i18n-safe/index-es.js';
+import {Preferences, PrefDefaults} from '../../vendor/easy-prefs/index-es.js';
 import '../../vendor/dialog-polyfill/dialog-polyfill.js';
 
 const synth = window.speechSynthesis;
@@ -15,11 +16,18 @@ const colors = ['Pink', 'LightPink', 'HotPink', 'DeepPink', 'MediumVioletRed', '
 const bopomofoSymbols = [...consonants, ...finals_single, ...finals_double, ...tones];
 const symbolsPerRow = 9;
 
+const defaults = {
+  Pronounce_component_syllables: true
+};
+const prefDefaults = new PrefDefaults({defaults});
+const prefs = new Preferences({appNamespace: 'bopomofo-', prefDefaults});
+
 (async () => {
 
 const [_] = await Promise.all([
     i18n({locales: [...navigator.languages, 'en-US'], localesBasePath: '../../'}),
     loadStylesheets([
+        ['data:image/x-icon;,', {image: false, favicon: true}], // Suppress console
         '../../vendor/dialog-polyfill/dialog-polyfill.css',
         '../../vendor/tippy.js/dist/tippy.css',
         'index.css'
@@ -28,13 +36,23 @@ const [_] = await Promise.all([
 
 function buildFlashcardButton () {
     return ['button', {id: 'flashcardSound', $on: {
-        click () {
-            speak(this.dataset.syllableChars);
+        async click () {
+            const pref = await prefs.getPref('Pronounce_component_syllables');
+            if (pref) {
+              if (this.dataset.syllableChars.length > 1) {
+                [...this.dataset.syllableChars].forEach((chr) => {
+                  speak(chr);
+                });
+              }
+              speak(this.dataset.syllableChars);
+            } else {
+              speak(this.dataset.syllableChars);
+            }
         }
     }}];
 }
 
-function init () {
+async function init () {
   document.title = _('title');
   jml('div', {class: 'hbox'}, [
     ['div', {class: 'vbox'}, [
@@ -125,7 +143,42 @@ function init () {
               dialogPolyfill.registerDialog(dialog);
               dialog.showModal();
           }
-      }}, [_('Flashcards')]]
+      }}, [_('Flashcards')]],
+      nbsp,
+      ['button', {$on: {
+        click () {
+          userText.value = '';
+        }
+      }}, [
+        _('Clear')
+      ]],
+      nbsp,
+      ['fieldset', [
+        ['legend', [_('Preferences')]],
+        ...await Promise.all(
+          Object.entries(defaults).map(async ([preference, defaultValue]) => {
+            const type = typeof defaultValue;
+            switch (type) {
+            case 'boolean':
+              return ['div', [
+                ['label', [
+                  ['input', {
+                    type: 'checkbox',
+                    id: preference,
+                    checked: await prefs.getPref(preference),
+                    $on: {
+                      async click (e) {
+                        await prefs.setPref(preference, this.checked);
+                      }
+                    }
+                  }],
+                  _(preference)
+                ]]
+              ]];
+            }
+          })
+        )
+      ]]
     ]],
     nbsp.repeat(2),
     ['textarea', {id: 'userText', class: 'userText'}, [
@@ -137,7 +190,7 @@ function init () {
     ['div', {class: 'buttonArea vbox'}]
   ], body);
 }
-init();
+await init();
 
 const voiceSelect = $('#voices');
 const userText = $('#userText');

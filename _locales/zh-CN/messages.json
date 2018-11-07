@@ -8,6 +8,15 @@
     "Cancel": {
         "message": "取消"
     },
+    "Clear": {
+        "message": "删除"
+    },
+    "Preferences": {
+        "message": "喜好"
+    },
+    "Pronounce_component_syllables": {
+        "message": "发音组件音节"
+    },
     "consonants": {
         "message": "辅音"
     },

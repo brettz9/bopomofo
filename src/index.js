@@ -1,5 +1,5 @@
 export const tones = [
-    ['', 'ˉ'], // First deliberately left empty as first tone is default for bomofo
+    ['¯', 'ˉ'], // First could be left empty as first tone is default for bomofo
     ['ˊ', 'ˊ'],
     ['ˇ', 'ˇ'],
     ['ˋ', 'ˋ'],
