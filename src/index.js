@@ -226,6 +226,16 @@ export function getRandomSyllable () {
     return possibleBopomofoSyllables[getRandomInt(possibleBopomofoSyllables.length - 1)];
 }
 
+let possibleBopomofoSyllablesEnhanced;
+export async function getRandomEnhancedSyllable () {
+  if (!possibleBopomofoSyllablesEnhanced) {
+    possibleBopomofoSyllablesEnhanced = await (
+      await fetch('../../data/possibleBopomofoSyllablesEnhanced.json')
+    ).json();
+  }
+  return possibleBopomofoSyllablesEnhanced[getRandomInt(possibleBopomofoSyllables.length - 1)];
+};
+
 export const finals_single_nontranscriptional = finalsToPinyin.slice(0, 1);
 export const finals_single = finalsToPinyin.slice(1).filter(([bpmf]) => bpmf.length === 1);
 export const finals_double = finalsToPinyin.filter(([bpmf]) => bpmf.length > 1);

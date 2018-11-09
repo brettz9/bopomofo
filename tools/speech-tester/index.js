@@ -4,7 +4,7 @@ import loadStylesheets from '../../vendor/load-stylesheets/dist/index-es.js';
 import {
   consonants,
   finals_single, finals_double, finals_single_nontranscriptional,
-  tones, getRandomSyllable
+  tones, getRandomEnhancedSyllable as getRandomSyllable
 } from '../../src/index.js';
 import tippy from '../../vendor/tippy.js/dist/esm/tippy.js';
 import {i18n} from '../../vendor/i18n-safe/index-es.js';
@@ -17,7 +17,8 @@ const bopomofoSymbols = [...consonants, ...finals_single, ...finals_double, ...t
 const symbolsPerRow = 9;
 
 const defaults = {
-  Pronounce_component_syllables: true
+  Pronounce_component_syllables: true,
+  Display_Chinese_characters: true
 };
 const prefDefaults = new PrefDefaults({defaults});
 const prefs = new Preferences({appNamespace: 'bopomofo-', prefDefaults});
@@ -39,14 +40,14 @@ function buildFlashcardButton () {
         async click () {
             const pref = await prefs.getPref('Pronounce_component_syllables');
             if (pref) {
-              if (this.dataset.syllableChars.length > 1) {
-                [...this.dataset.syllableChars].forEach((chr) => {
+              if (this.dataset.syllableBPMFChars.length > 1) {
+                [...this.dataset.syllableBPMFChars].forEach((chr) => {
                   speak(chr);
                 });
               }
-              speak(this.dataset.syllableChars);
+              speak(this.dataset.syllableBPMFChars);
             } else {
-              speak(this.dataset.syllableChars);
+              speak(this.dataset.syllableBPMFChars);
             }
         }
     }}];
@@ -75,39 +76,45 @@ async function init () {
       nbsp,
       ['button', {$on: {
           click () {
-              setTimeout(() => {
-                  dialog.$setRandomSyllable();
+              setTimeout(async () => {
+                  await dialog.$setRandomSyllable();
               });
               const dialog = jml('dialog', {
                   $custom: {
                       $syllableCtr: -1,
                       $randomSyllables: [],
-                      $setPreviousRandomSyllable () {
+                      async $setPreviousRandomSyllable () {
                           if (this.$syllableCtr < 1) {
                               return;
                           }
                           const previousRandomSyllableInfo =
                             this.$randomSyllables[--this.$syllableCtr];
-                          this.$setSyllable(...previousRandomSyllableInfo);
+                          await this.$setSyllable(...previousRandomSyllableInfo);
                       },
-                      $setSyllable (syllableChars, syllableSound) {
+                      async $setSyllable (syllableBPMFChars, syllableSound, syllableChars) {
                           $('#flashcardSound').replaceWith(jml(...buildFlashcardButton()));
-                          flashcardSound.textContent = syllableSound;
+                          const displayChars = await prefs.getPref('Display_Chinese_characters');
+                          flashcardSound.textContent = displayChars
+                            ? syllableChars
+                            : syllableSound;
+                          flashcardSound.dataset.syllableBPMFChars = syllableBPMFChars;
                           flashcardSound.dataset.syllableChars = syllableChars;
-                          flashcardSound.dataset.tippyContent = syllableChars;
+                          flashcardSound.dataset.tippyContent =
+                            (displayChars ? syllableSound + ' (' : '') + syllableBPMFChars +
+                            (displayChars ? ')' : '');
                           tippy('button[data-tippy-content]', {
                               followCursor: true,
                               distance: 100,
                               placement: 'right'
                           });
                       },
-                      $setRandomSyllable () {
+                      async $setRandomSyllable () {
                           const syllableInfo = (
                               this.$syllableCtr >= this.$randomSyllables.length - 1
                           )
-                            ? getRandomSyllable()
+                            ? await getRandomSyllable()
                             : this.$randomSyllables[this.$syllableCtr + 1];
-                          this.$setSyllable(...syllableInfo);
+                          await this.$setSyllable(...syllableInfo);
                           this.$randomSyllables[++this.$syllableCtr] = syllableInfo;
                       }
                   }
@@ -123,8 +130,8 @@ async function init () {
                           _('backward')
                       ]],
                       ['button', {$on: {
-                          click () {
-                              dialog.$setRandomSyllable();
+                          async click () {
+                              await dialog.$setRandomSyllable();
                           }
                       }}, [
                           _('forward')
