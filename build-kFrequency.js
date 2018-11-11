@@ -69,11 +69,11 @@ const mostFrequentChars = mostFrequentCharsPreMap.map(({kFrequency, kTotalStroke
   } else {
     sound = uniquePinyinNoTones.values().next().value;
   }
-  return [kSimplifiedVariant || c, sound, parseInt(kFrequency), nonUnique]; // , kFrequency, kTotalStrokes['zh-Hans']];
+  return [kSimplifiedVariant || c, sound, parseInt(kFrequency), nonUnique, readings[0]]; // , kFrequency, kTotalStrokes['zh-Hans']];
 }).filter((i) => i);
 
-function getFirstChar (freqs) {
-  return freqs.slice(0, 1).map(([chr]) => chr)[0];
+function getFirstCharInfo (freqs) {
+  return freqs.slice(0, 1)[0]; // .map(([chr]) => chr);
 }
 
 const possibleBopomofoSyllablesEnhanced = possibleBopomofoSyllables.map(([bpmf, pinyin]) => {
@@ -91,8 +91,8 @@ const possibleBopomofoSyllablesEnhanced = possibleBopomofoSyllables.map(([bpmf, 
   if (!freqs.length) {
     freqs = freqsAll;
   }
-  let freqChars = getFirstChar(freqs); // For now, we just include 1
-  if (!freqChars) {
+  let freqChars = getFirstCharInfo(freqs); // For now, we just include 1
+  if (!freqChars || !freqChars[0]) {
     // Try again but without filtering out duplicates
     freqChars = {
         // These do not have pinyin for some reason
@@ -125,7 +125,7 @@ const possibleBopomofoSyllablesEnhanced = possibleBopomofoSyllables.map(([bpmf, 
       return null;
     }
   }
-  return [bpmf, pinyin, freqChars];
+  return [bpmf, freqChars[4], freqChars[0]];
 }).filter((i) => i);
 
 // console.log('possibleBopomofoSyllablesEnhanced', possibleBopomofoSyllablesEnhanced);

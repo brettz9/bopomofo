@@ -91,16 +91,16 @@ async function init () {
                             this.$randomSyllables[--this.$syllableCtr];
                           await this.$setSyllable(...previousRandomSyllableInfo);
                       },
-                      async $setSyllable (syllableBPMFChars, syllableSound, syllableChars) {
+                      async $setSyllable (syllableBPMFChars, pinyinWithTones, syllableChars) {
                           $('#flashcardSound').replaceWith(jml(...buildFlashcardButton()));
                           const displayChars = await prefs.getPref('Display_Chinese_characters');
                           flashcardSound.textContent = displayChars
                             ? syllableChars
-                            : syllableSound;
+                            : pinyinWithTones;
                           flashcardSound.dataset.syllableBPMFChars = syllableBPMFChars;
                           flashcardSound.dataset.syllableChars = syllableChars;
                           flashcardSound.dataset.tippyContent =
-                            (displayChars ? syllableSound + ' (' : '') + syllableBPMFChars +
+                            (displayChars ? pinyinWithTones + ' (' : '') + syllableBPMFChars +
                             (displayChars ? ')' : '');
                           tippy('button[data-tippy-content]', {
                               followCursor: true,

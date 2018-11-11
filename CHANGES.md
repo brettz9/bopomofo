@@ -1,5 +1,9 @@
 # bopomofo CHANGES
 
+## 0.9.0
+
+- Enhancement: Add tone markers to pinyin
+
 ## 0.8.0
 
 - Enhancement: Add preference to pronounce component syllables
