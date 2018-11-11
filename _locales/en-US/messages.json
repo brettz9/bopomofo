@@ -36,7 +36,7 @@
         "message": "Finals (single - non-transcriptional)"
     },
     "finals_single_nontranscriptional_note": {
-        "message": "This sound is identified but is not used or needed as part of transcriptions. It is assumed with the consonants that use it. Also, the character that represents may not be supported in your browser font."
+        "message": "This sound is identified but is not used or needed as part of transcriptions. It is assumed with the consonants that use it. Also, the character that represents it may not be supported in your browser font."
     },
     "tones": {
         "message": "Tones"
