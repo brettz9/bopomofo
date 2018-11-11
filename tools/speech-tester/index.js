@@ -45,9 +45,9 @@ function buildFlashcardButton () {
                   speak(chr);
                 });
               }
-              speak(this.dataset.syllableBPMFChars);
+              speak(this.dataset.syllableChars);
             } else {
-              speak(this.dataset.syllableBPMFChars);
+              speak(this.dataset.syllableChars);
             }
         }
     }}];

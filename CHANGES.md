@@ -1,5 +1,9 @@
 # bopomofo CHANGES
 
+## 0.9.1
+
+- Fix: Have pronunciation include tones (speaks character now)
+
 ## 0.9.0
 
 - Enhancement: Add tone markers to pinyin
