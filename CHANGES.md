@@ -1,5 +1,9 @@
 # bopomofo CHANGES
 
+## 0.10.0
+
+- Enhancement: Show tone numbers on hover over tones
+
 ## 0.9.3
 
 - Fix: For few items for which no characters are found (a number of syllable

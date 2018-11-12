@@ -257,7 +257,7 @@ Object.entries({
                 ? _('finals_single_nontranscriptional_note')
                 : type === 'tones'
                   ? bopomofoSymbol
-                      ? null
+                      ? j + 1
                       : _('first_tone_is_default')
                   : bopomofoSymbol
           },
