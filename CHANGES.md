@@ -1,5 +1,11 @@
 # bopomofo CHANGES
 
+## 0.9.3
+
+- Fix: For few items for which no characters are found (a number of syllable
+  finals, some syllables with umlauts and `to`), at least show the pinyin.
+- Fix: Get tones to show for characters we are forcing a match with
+
 ## 0.9.2
 
 - Fix: Possible race condition for flashcard set-up

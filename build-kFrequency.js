@@ -94,15 +94,15 @@ const possibleBopomofoSyllablesEnhanced = possibleBopomofoSyllables.map(([bpmf, 
   let freqChars = getFirstCharInfo(freqs); // For now, we just include 1
   if (!freqChars || !freqChars[0]) {
     // Try again but without filtering out duplicates
-    freqChars = {
+    const chr = {
         // These do not have pinyin for some reason
-        dei: '得',
-        lia: '涜',
-        gei: '給',
-        zhei: '这',
-        shei: '谁',
-        zhuai: '跩',
-        jü: '侷',
+        dei: ['得', 'děi'],
+        lia: ['俩', 'liǎ'],
+        gei: ['給', 'gěi'],
+        zhei: ['这', 'zhèi'],
+        shei: ['谁', 'shéi'],
+        zhuai: ['跩', 'zhuǎi'],
+        jü: ['侷', 'jú'],
         // These also, but not sure about replacements:
         // to
         // These with umlauts:
@@ -120,10 +120,14 @@ const possibleBopomofoSyllablesEnhanced = possibleBopomofoSyllables.map(([bpmf, 
         // xün
         // These single syllable finals: ê, ei, i, u, ü
         // All of the double syllable finals
-    }[pinyin];
-    if (!freqChars) {
+    }[pinyin] || [];
+    /*
+    if (!chr) {
       return null;
     }
+    */
+    const pinyinWithTonesIfAvailable = (freqChars && freqChars[4]) || chr[1] || pinyin;
+    return [bpmf, pinyinWithTonesIfAvailable, chr[0] || pinyinWithTonesIfAvailable];
   }
   return [bpmf, freqChars[4], freqChars[0]];
 }).filter((i) => i);

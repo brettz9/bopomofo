@@ -91,11 +91,16 @@ async function init () {
                       async $setSyllable (syllableBPMFChars, pinyinWithTones, syllableChars) {
                           $('#flashcardSound').replaceWith(jml(...buildFlashcardButton()));
                           const displayChars = await prefs.getPref('Display_Chinese_characters');
+                          const noCharAvailable = pinyinWithTones === syllableChars;
                           flashcardSound.textContent = displayChars
                             ? syllableChars
                             : pinyinWithTones;
                           flashcardSound.dataset.syllableBPMFChars = syllableBPMFChars;
-                          flashcardSound.dataset.syllableChars = syllableChars;
+                          flashcardSound.dataset.syllableChars = noCharAvailable
+                            // Pronounce BMPF when no char. available as pinyin
+                            //  reading, even with tones, is treated as English
+                            ? syllableBPMFChars
+                            : syllableChars;
                           flashcardSound.dataset.tippyContent =
                             (displayChars ? pinyinWithTones + ' (' : '') + syllableBPMFChars +
                             (displayChars ? ')' : '');
@@ -308,5 +313,8 @@ tippy('[data-tippy-content]', {
     distance: 50,
     placement: 'right'
 });
+
+// Trigger caching of JSON so ideally no need to wait when user clicks for flashcards
+getRandomSyllable();
 
 })();
