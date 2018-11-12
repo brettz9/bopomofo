@@ -1,5 +1,9 @@
 # bopomofo CHANGES
 
+## 0.10.1
+
+- Fix: Show special tooltip for first tone
+
 ## 0.10.0
 
 - Enhancement: Show tone numbers on hover over tones

@@ -256,7 +256,7 @@ Object.entries({
               tippyContent: type === 'finals_single_nontranscriptional'
                 ? _('finals_single_nontranscriptional_note')
                 : type === 'tones'
-                  ? bopomofoSymbol
+                  ? j > 0
                       ? j + 1
                       : _('first_tone_is_default')
                   : bopomofoSymbol
