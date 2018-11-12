@@ -1,5 +1,11 @@
 # bopomofo CHANGES
 
+## 0.9.2
+
+- Fix: Possible race condition for flashcard set-up
+- l10n: Grammar nit
+- Docs: Update docs per latest behavior
+
 ## 0.9.1
 
 - Fix: Have pronunciation include tones (speaks character now)

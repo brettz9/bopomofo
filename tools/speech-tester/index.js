@@ -75,10 +75,7 @@ async function init () {
       }}, [_('Cancel')]],
       nbsp,
       ['button', {$on: {
-          click () {
-              setTimeout(async () => {
-                  await dialog.$setRandomSyllable();
-              });
+          async click () {
               const dialog = jml('dialog', {
                   $custom: {
                       $syllableCtr: -1,
@@ -147,6 +144,7 @@ async function init () {
                       ]]
                   ]]
               ], body);
+              await dialog.$setRandomSyllable();
               dialogPolyfill.registerDialog(dialog);
               dialog.showModal();
           }

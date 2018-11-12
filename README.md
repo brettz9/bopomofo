@@ -14,12 +14,12 @@ system for Mandarin Chinese.
   one or none for browsers not supporting Chinese voices or not
   supporting `speechSynthesis`).
 - Button to show flashcards dialog; dialog shows button with a
-  randomly chosen Mandarin character (currently the most frequent, lowest
-  stroke count character that is not pronouceable with other sound) (among
-  all syllables possible); can hover button to see comprising pinyin and
-  Bopomofo characters, can push button to get sound, and can scroll
-  forward through new random items, or backward through already
-  discovered items.
+  randomly chosen Mandarin character or pinyin derived from the character
+  (currently the most frequent, lowest stroke count character that is not
+  pronouceable with another sound) (among all syllables possible); can
+  hover button to see comprising pinyin and Bopomofo characters, can push
+  button to get sound, and can scroll forward through new random items,
+  or backward through already discovered items.
 
 ## To-dos
 
