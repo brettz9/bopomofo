@@ -24,7 +24,7 @@ system for Mandarin Chinese.
 
 ## To-dos
 
-1. Fix and add testcafe tests
+1. Add more testcafe tests
 1. Allow filtering of possible choices by consonant, medial (or final?)
 1. Allow input of tone to flashcards playback
 1. Keep a memory of user's progress, more often omitting items marked
