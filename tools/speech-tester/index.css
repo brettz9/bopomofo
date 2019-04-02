@@ -16,3 +16,14 @@
 .symbolType {
     margin-top: 0;
 }
+
+/* https://developer.paciellogroup.com/blog/2012/05/html5-accessibility-chops-hidden-and-aria-hidden/ */
+.hide-visual { /* Still allows screen readers to see (e.g., for labels) */
+  clip-path: inset(100%);
+  clip: rect(1px, 1px, 1px, 1px);
+  height: 1px;
+  overflow: hidden;
+  position: absolute;
+  white-space: nowrap; /* added line */
+  width: 1px;
+ }

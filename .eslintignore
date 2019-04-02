@@ -1,0 +1,4 @@
+node_modules
+vendor
+!vendor/easy-prefs
+!vendor/i18n-safe

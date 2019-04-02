@@ -2,8 +2,14 @@
     "title": {
         "message": "Bopomofo tool"
     },
+    "Bopomofo": {
+        "message": "Bopomofo"
+    },
     "Play": {
         "message": "Play"
+    },
+    "Voices": {
+        "message": "Voices:"
     },
     "Cancel": {
         "message": "Cancel"

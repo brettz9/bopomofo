@@ -2,8 +2,14 @@
     "title": {
         "message": "注音符號工具"
     },
+    "Bopomofo": {
+        "message": "注音符號"
+    },
     "Play": {
         "message": "播放"
+    },
+    "Voices": {
+        "message": "声音："
     },
     "Cancel": {
         "message": "取消"

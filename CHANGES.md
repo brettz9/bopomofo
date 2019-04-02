@@ -1,5 +1,15 @@
 # bopomofo CHANGES
 
+## 1.0.0
+
+- Fix: Global `flashcardSound`
+- Enhancement: Accessibility
+- Update: Use new ESM version of dialog-polyfill
+- Linting (ESLint): Add eslint-config-ash-nazg and npm script and apply
+- Testing: Add UI tests
+- Docs: Typos, lbs, todo
+- npm: Update devDeps including dialog-polyfill; make explicit `core-js` devDep
+
 ## 0.10.1
 
 - Fix: Show special tooltip for first tone
