@@ -85,10 +85,7 @@ async function init () {
   }, [
     ['div', {class: 'vbox'}, [
       ['div', {class: 'hbox'}, [
-        ['label', {for: 'voices', class: 'hide-visual'}, [
-          _('Voices')
-        ]],
-        ['select', {id: 'voices'}],
+        ['select', {id: 'voices', 'aria-label': _('Voices')}],
         nbsp,
         ['button', {id: 'play', $on: {
           click (e) {
@@ -231,8 +228,11 @@ async function init () {
       ]]
     ]],
     nbsp.repeat(2),
-    ['label', {for: 'userText', class: 'hide-visual'}, [_('Bopomofo')]],
-    ['textarea', {id: 'userText', class: 'userText'}, [
+    ['textarea', {
+      id: 'userText',
+      class: 'userText',
+      'aria-label': _('Bopomofo')
+    }, [
       bopomofoSymbols.reduce((s, [bopomofoSymbol]) => {
         return s + bopomofoSymbol + ' ';
       }, '')
