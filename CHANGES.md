@@ -1,5 +1,10 @@
 # bopomofo CHANGES
 
+## ?
+
+- Refactoring: Simplify preference default setting
+- npm: Add separate open script
+
 ## 1.0.0
 
 - Fix: Global `flashcardSound`

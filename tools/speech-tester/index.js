@@ -9,7 +9,7 @@ import {
 } from '../../src/index.js';
 import tippy from '../../vendor/tippy.js/dist/esm/tippy.js';
 import {i18n} from '../../vendor/i18n-safe/index-es.js';
-import {Preferences, PrefDefaults} from '../../vendor/easy-prefs/index-es.js';
+import {Preferences} from '../../vendor/easy-prefs/index-es.js';
 import dialogPolyfill from
   '../../vendor/dialog-polyfill/dist/dialog-polyfill.esm.js';
 
@@ -36,8 +36,7 @@ const defaults = {
   Pronounce_component_syllables: true,
   Display_Chinese_characters: true
 };
-const prefDefaults = new PrefDefaults({defaults});
-const prefs = new Preferences({appNamespace: 'bopomofo-', prefDefaults});
+const prefs = new Preferences({appNamespace: 'bopomofo-', defaults});
 
 (async () => {
 const state = {};

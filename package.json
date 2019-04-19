@@ -5,7 +5,8 @@
   "description": "Tool for studying bopomofo transliteration system",
   "scripts": {
     "eslint": "eslint .",
-    "start": "open http://localhost:8049/tools/speech-tester/ && static -p 8049",
+    "open": "open http://localhost:8049/tools/speech-tester/ && npm start",
+    "start": "static -p 8049",
     "copy": "cp node_modules/jamilih/dist/jml-es.js vendor/jamilih/dist/jml-es.js && cp node_modules/tippy.js/dist/esm/tippy.js vendor/tippy.js/dist/esm/tippy.js && cp node_modules/tippy.js/dist/tippy.css vendor/tippy.js/dist/tippy.css && cp node_modules/load-stylesheets/dist/index-es.js vendor/load-stylesheets/dist/index-es.js && cp node_modules/dialog-polyfill/dist/dialog-polyfill.esm.js vendor/dialog-polyfill/dist/dialog-polyfill.esm.js && cp node_modules/dialog-polyfill/dialog-polyfill.css vendor/dialog-polyfill/dialog-polyfill.css",
     "build-syllables": "npx babel-node build-kFrequency",
     "test": "testcafe chrome test/**/*.js"

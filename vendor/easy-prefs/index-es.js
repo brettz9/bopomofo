@@ -3,8 +3,8 @@ export class Preferences {
   constructor (opts) {
     this.configurePrefs(opts);
   }
-  configurePrefs ({appNamespace, prefDefaults}) {
-    Object.assign(this, {appNamespace, prefDefaults});
+  configurePrefs ({appNamespace, defaults, prefDefaults: prefDef = prefDefaults(defaults)}) {
+    Object.assign(this, {appNamespace, prefDefaults: prefDef});
   }
   /**
    * Get parsed preference value; returns `Promise` in anticipation
@@ -43,4 +43,8 @@ export class PrefDefaults {
   async getPrefDefault (key) { // eslint-disable-line require-await
     return this.defaults[key];
   }
+}
+
+export function prefDefaults (defaults) {
+    return new PrefDefaults({defaults});
 }
