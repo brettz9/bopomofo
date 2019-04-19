@@ -3,6 +3,7 @@
 ## ?
 
 - Refactoring: Simplify preference default setting
+- Refactoring: Simplify labeling by using aria-label rather than CSS
 - npm: Add separate open script
 
 ## 1.0.0
