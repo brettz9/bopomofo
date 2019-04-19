@@ -9,7 +9,7 @@ import {
 } from '../../src/index.js';
 import tippy from '../../vendor/tippy.js/dist/esm/tippy.js';
 import {i18n} from '../../vendor/i18n-safe/index-es.js';
-import {SimplePrefs} from '../../vendor/easy-prefs/index-es.js';
+import {SimplePrefs} from '../../vendor/simple-prefs/index.esm.js';
 import dialogPolyfill from
   '../../vendor/dialog-polyfill/dist/dialog-polyfill.esm.js';
 

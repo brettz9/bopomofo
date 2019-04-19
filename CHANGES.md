@@ -1,7 +1,8 @@
 # bopomofo CHANGES
 
-## ?
+## 2.0.0
 
+- Breaking change: Now requires @babel/polyfill as added SimplePrefs as external dep.
 - Refactoring: Simplify preference default setting; fix and
   simplify preference namespacing
 - Refactoring: Simplify labeling by using aria-label rather than CSS
