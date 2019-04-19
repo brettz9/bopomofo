@@ -2,7 +2,8 @@
 
 ## ?
 
-- Refactoring: Simplify preference default setting
+- Refactoring: Simplify preference default setting; fix and
+  simplify preference namespacing
 - Refactoring: Simplify labeling by using aria-label rather than CSS
 - npm: Add separate open script
 

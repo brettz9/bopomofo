@@ -3,8 +3,8 @@ export class Preferences {
   constructor (opts) {
     this.configurePrefs(opts);
   }
-  configurePrefs ({appNamespace, defaults, prefDefaults: prefDef = prefDefaults(defaults)}) {
-    Object.assign(this, {appNamespace, prefDefaults: prefDef});
+  configurePrefs ({namespace, defaults, prefDefaults: prefDef = prefDefaults(defaults)}) {
+    Object.assign(this, {namespace, prefDefaults: prefDef});
   }
   /**
    * Get parsed preference value; returns `Promise` in anticipation
@@ -13,7 +13,7 @@ export class Preferences {
    * @returns {Promise} Resolves to the parsed value (defaulting if necessary)
    */
   async getPref (key) { // eslint-disable-line require-await
-    const result = localStorage.getItem(this.appNS + key);
+    const result = localStorage.getItem(this.namespace + key);
     return result === null
       ? this.prefDefaults.getPrefDefault(key)
       : JSON.parse(result);
@@ -27,7 +27,7 @@ export class Preferences {
    *    in use)
    */
   async setPref (key, val) { // eslint-disable-line require-await
-    return localStorage.setItem(this.appNS + key, JSON.stringify(val));
+    return localStorage.setItem(this.namespace + key, JSON.stringify(val));
   }
 }
 

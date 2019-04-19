@@ -36,7 +36,7 @@ const defaults = {
   Pronounce_component_syllables: true,
   Display_Chinese_characters: true
 };
-const prefs = new Preferences({appNamespace: 'bopomofo-', defaults});
+const prefs = new Preferences({namespace: 'bopomofo-', defaults});
 
 (async () => {
 const state = {};
