@@ -7,7 +7,7 @@ import {
   finals_single, finals_double, finals_single_nontranscriptional,
   tones, getRandomEnhancedSyllable as getRandomSyllable
 } from '../../src/index.js';
-import tippy from '../../vendor/tippy.js/dist/esm/tippy.js';
+import tippy from '../../vendor/tippy.js/esm/index.all.js';
 import {i18n} from '../../vendor/i18n-safe/index-es.js';
 import {SimplePrefs} from '../../vendor/simple-prefs/index.esm.js';
 import dialogPolyfill from
@@ -49,7 +49,6 @@ const [_] = await Promise.all([
   loadStylesheets([
     ['data:image/x-icon;,', {image: false, favicon: true}], // Suppress console
     '../../vendor/dialog-polyfill/dialog-polyfill.css',
-    '../../vendor/tippy.js/dist/tippy.css',
     'index.css'
   ])
 ]);
