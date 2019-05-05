@@ -2,11 +2,13 @@
 
 ## 2.0.0
 
-- Breaking change: Now requires @babel/polyfill as added SimplePrefs as external dep.
+- Breaking change: Now requires core-js/regenerator-runtime as added
+    SimplePrefs as external dep.
 - Refactoring: Simplify preference default setting; fix and
   simplify preference namespacing
 - Refactoring: Simplify labeling by using aria-label rather than CSS
 - npm: Add separate open script
+- npm: Update devDeps
 
 ## 1.0.0
 
