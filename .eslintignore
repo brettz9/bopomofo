@@ -1,4 +1,5 @@
 node_modules
 vendor
-!vendor/easy-prefs
+
+# Items to move to own repo
 !vendor/i18n-safe
