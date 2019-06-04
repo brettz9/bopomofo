@@ -8,7 +8,7 @@
     "open": "open http://localhost:8049/tools/speech-tester/ && npm start",
     "start": "static -p 8049",
     "tippy-rollup": "rollup -c",
-    "copy": "npm run tippy-rollup && cp node_modules/jamilih/dist/jml-es.js vendor/jamilih/dist/jml-es.js && cp node_modules/load-stylesheets/dist/index-es.js vendor/load-stylesheets/dist/index-es.js && cp node_modules/dialog-polyfill/dist/dialog-polyfill.esm.js vendor/dialog-polyfill/dist/dialog-polyfill.esm.js && cp node_modules/dialog-polyfill/dialog-polyfill.css vendor/dialog-polyfill/dialog-polyfill.css && cp node_modules/simple-prefs/dist/index.esm.js vendor/simple-prefs/index.esm.js && cp node_modules/@babel/polyfill/dist/polyfill.js vendor/@babel/polyfill/dist/polyfill.js && cp node_modules/regenerator-runtime/runtime.js vendor/regenerator-runtime/runtime.js && cp node_modules/core-js-bundle/minified.js vendor/core-js-bundle/minified.js",
+    "copy": "npm run tippy-rollup && cp node_modules/jamilih/dist/jml-es.js vendor/jamilih/dist/jml-es.js && cp node_modules/load-stylesheets/dist/index-es.js vendor/load-stylesheets/dist/index-es.js && cp node_modules/dialog-polyfill/dist/dialog-polyfill.esm.js vendor/dialog-polyfill/dist/dialog-polyfill.esm.js && cp node_modules/dialog-polyfill/dialog-polyfill.css vendor/dialog-polyfill/dialog-polyfill.css && cp node_modules/simple-prefs/dist/index.esm.js vendor/simple-prefs/index.esm.js && cp node_modules/regenerator-runtime/runtime.js vendor/regenerator-runtime/runtime.js && cp node_modules/core-js-bundle/minified.js vendor/core-js-bundle/minified.js",
     "build-syllables": "npx babel-node build-kFrequency",
     "test": "testcafe chrome test/**/*.js"
   },
