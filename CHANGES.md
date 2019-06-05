@@ -1,5 +1,14 @@
 # bopomofo CHANGES
 
+## 2.1.0
+
+- Optimization: Defer scripts
+- Linting: Update ignore file
+- npm: Make separate copy scripts for clarity as to included deps.
+- npm: Update devDeps; opn-cli -> open-cli, deps copied:
+  core-js-bundle, jamilih, load-stylesheets, tippy.js
+- npm: Remove unused `@babel/polyfill`
+
 ## 2.0.0
 
 - Breaking change: Now requires core-js/regenerator-runtime as added
