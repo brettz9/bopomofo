@@ -57,6 +57,15 @@ if (state.detectedLocale) {
   // Todo: Use rtl-detect to add `document.documentElement.dir`
 }
 
+/**
+* @external JamilihArray
+* @see https://github.com/brettz9/jamilih/
+*/
+
+/**
+ *
+ * @returns {external:JamilihArray}
+ */
 function buildFlashcardButton () {
   return ['button', {id: 'flashcardSound', $on: {
     async click () {
@@ -75,6 +84,10 @@ function buildFlashcardButton () {
   }}];
 }
 
+/**
+ *
+ * @returns {Promise<void>}
+ */
 async function init () {
   document.title = _('title');
   jml('div', {
@@ -253,6 +266,11 @@ const voices = synth.getVoices().filter(({lang, name}) => {
   return false;
 });
 
+/**
+ *
+ * @param {string} text
+ * @returns {void}
+ */
 function speak (text) {
   const selectedOption = voiceSelect.selectedOptions[0].dataset.name;
   const utterance = new SpeechSynthesisUtterance(text);

@@ -201,6 +201,12 @@ export const finalsToPinyin = [
 ];
 // console.log('finalsToPinyin', finalsToPinyin);
 
+/**
+ *
+ * @param {string} finalChars
+ * @param {boolean} [component=true]
+ * @returns {void|"e"|string} Pinyin
+ */
 export function findPinyinForBopomofoChars (finalChars, component = true) {
   if (component && finalChars === 'ㄝ') { // 'ê' is only used independently
     return 'e';
@@ -216,6 +222,7 @@ export function findPinyinForBopomofoChars (finalChars, component = true) {
   }
   return result[1];
 }
+
 export const possibleBopomofoSyllables = [
   ...consonants.flatMap((
     [c, phonetic, /* fullPhonetic */ , availableFinals]
@@ -230,15 +237,25 @@ export const possibleBopomofoSyllables = [
         phonetic + findPinyinForBopomofoChars(finalChars)
       ];
     });
-  }), ...finals.map((r) => {
+  }),
+  ...finals.map((r) => {
     return [r, findPinyinForBopomofoChars(r, false)];
   })
 ];
 
+/**
+ *
+ * @param {Float} max
+ * @returns {Integer}
+ */
 function getRandomInt (max) {
   return Math.floor(Math.random() * Math.floor(max));
 }
 // Todo: Could add in option to add tones too (and use in GUI tool)
+/**
+ *
+ * @returns {Syllable}
+ */
 export function getRandomSyllable () {
   return possibleBopomofoSyllables[
     getRandomInt(possibleBopomofoSyllables.length - 1)
@@ -246,6 +263,11 @@ export function getRandomSyllable () {
 }
 
 let possibleBopomofoSyllablesEnhanced;
+
+/**
+ *
+ * @returns {Syllable}
+ */
 export async function getRandomEnhancedSyllable () {
   if (!possibleBopomofoSyllablesEnhanced) {
     possibleBopomofoSyllablesEnhanced = await (

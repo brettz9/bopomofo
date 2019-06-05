@@ -1,5 +1,9 @@
 # bopomofo CHANGES
 
+## ?
+
+- Docs: JSDoc (Linting)
+
 ## 2.1.0
 
 - Optimization: Defer scripts

@@ -6,6 +6,11 @@ import util from 'util';
 import unihanETL from 'node-unihan-etl';
 import {possibleBopomofoSyllables} from './src/index.js';
 
+/**
+ *
+ * @param {string} str
+ * @returns {string}
+ */
 function stripPinyinDiacritics (str) {
   return str.normalize('NFD')
     .replace(/[\u0300-\u0307\u0309-\u036F]/gu, '')
@@ -89,7 +94,23 @@ const mostFrequentChars = mostFrequentCharsPreMap.map(({
   ]; // , kFrequency, kTotalStrokes['zh-Hans']];
 }).filter((i) => i);
 
+/**
+* @typedef {GenericArray} CharInfo
+* @property {string} 0 kSimplifiedVariant, defaulting to char
+* @property {string|string[]} 1 sound
+* @property {Integer} 2 kFrequency
+* @property {boolean} 3 nonUnique
+* @property {string} 4 First item of `readings`
+*/
+
+/* eslint-disable jsdoc/check-types */
+/**
+ *
+ * @param {CharInfo[]} freqs
+ * @returns {CharInfo}
+ */
 function getFirstCharInfo (freqs) {
+  /* eslint-enable jsdoc/check-types */
   return freqs.slice(0, 1)[0]; // .map(([chr]) => chr);
 }
 
