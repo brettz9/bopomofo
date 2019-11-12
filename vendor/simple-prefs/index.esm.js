@@ -61,7 +61,7 @@ function _createClass(Constructor, protoProps, staticProps) {
  */
 
 /**
-* @typedef {PlainObject<string: module:SimplePrefs.Value>}
+* @typedef {PlainObject<{string: module:SimplePrefs.Value}>}
 *   module:SimplePrefs.Defaults
 */
 
@@ -176,6 +176,26 @@ function () {
 
       return setPref;
     }()
+    /**
+    * @typedef {PlainObject} GetPrefSetPref
+    * @property {module:SimplePrefs.SimplePrefs#getPref} getPref
+    * @property {module:SimplePrefs.SimplePrefs#setPref} setPref
+    */
+
+    /**
+     * Convenience utility to return two main methods `getPref` and
+     *   `setPref` bound to the current object.
+     * @returns {GetPrefSetPref}
+     */
+
+  }, {
+    key: "bind",
+    value: function bind() {
+      return {
+        getPref: this.getPref.bind(this),
+        setPref: this.setPref.bind(this)
+      };
+    }
   }]);
 
   return SimplePrefs;

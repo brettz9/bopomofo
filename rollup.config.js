@@ -11,10 +11,12 @@ export default [
     //   and import that instead, but if that ever ends
     //   up needing more build steps than this dist
     //   file, it could require more work than this.
-    input: 'node_modules/tippy.js/esm/index.all.js',
+    // For some reason, this requires `process`!
+    input: 'node_modules/tippy.js/dist/tippy-bundle.esm.js',
     output: {
+      banner: 'var process = {env: {NODE_ENV: "production"}}',
       format: 'esm',
-      file: 'vendor/tippy.js/esm/index.all.js'
+      file: 'vendor/tippy.js/dist/tippy-bundle.esm.js'
     },
     plugins: [resolve()]
   }

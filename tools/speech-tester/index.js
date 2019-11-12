@@ -7,7 +7,7 @@ import {
   finals_single, finals_double, finals_single_nontranscriptional,
   tones, getRandomEnhancedSyllable as getRandomSyllable
 } from '../../src/index.js';
-import tippy from '../../vendor/tippy.js/esm/index.all.js';
+import tippy from '../../vendor/tippy.js/dist/tippy-bundle.esm.js';
 import {i18n} from '../../vendor/i18n-safe/index-es.js';
 import {SimplePrefs} from '../../vendor/simple-prefs/index.esm.js';
 import dialogPolyfill from
@@ -95,6 +95,7 @@ async function init () {
     class: 'hbox'
   }, [
     ['div', {class: 'vbox'}, [
+      ['h1', [_('Controls')]],
       ['div', {class: 'hbox'}, [
         ['select', {id: 'voices', 'aria-label': _('Voices')}],
         nbsp,

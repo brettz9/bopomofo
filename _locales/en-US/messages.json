@@ -1,68 +1,71 @@
 {
-    "title": {
-        "message": "Bopomofo tool"
-    },
-    "Bopomofo": {
-        "message": "Bopomofo"
-    },
-    "Play": {
-        "message": "Play"
-    },
-    "Voices": {
-        "message": "Voices:"
-    },
-    "Cancel": {
-        "message": "Cancel"
-    },
-    "Clear": {
-        "message": "Clear"
-    },
-    "Preferences": {
-        "message": "Preferences"
-    },
-    "Pronounce_component_syllables": {
-        "message": "Pronounce component syllables"
-    },
-    "Display_Chinese_characters": {
-        "message": "Display Chinese characters"
-    },
-    "consonants": {
-        "message": "Consonants"
-    },
-    "medials": {
-        "message": "Medials"
-    },
-    "finals_single": {
-      "message": "Finals (single)"
-    },
-    "finals_double": {
-      "message": "Finals (double)"
-    },
-    "finals_single_nontranscriptional": {
-        "message": "Finals (single - non-transcriptional)"
-    },
-    "finals_single_nontranscriptional_note": {
-        "message": "This sound is identified but is not used or needed as part of transcriptions. It is assumed with the consonants that use it. Also, the character that represents it may not be supported in your browser font."
-    },
-    "tones": {
-        "message": "Tones"
-    },
-    "first_tone_is_default": {
-        "message": "The first tone is the default in bopomofo, so no need to insert"
-    },
-    "Close": {
-        "message": "Close"
-    },
-    "Flashcards": {
-        "message": "Flashcards"
-    },
-    "forward": {
-        "message": "->"
-    },
-    "backward": {
-        "message": "<-"
-    },
-    "License_AGPL": {
-        "message": "License (AGPL)"
-    }
+  "title": {
+    "message": "Bopomofo tool"
+  },
+  "Bopomofo": {
+    "message": "Bopomofo"
+  },
+  "Controls": {
+    "message": "Controls"
+  },
+  "Play": {
+    "message": "Play"
+  },
+  "Voices": {
+    "message": "Voices:"
+  },
+  "Cancel": {
+    "message": "Cancel"
+  },
+  "Clear": {
+    "message": "Clear"
+  },
+  "Preferences": {
+    "message": "Preferences"
+  },
+  "Pronounce_component_syllables": {
+    "message": "Pronounce component syllables"
+  },
+  "Display_Chinese_characters": {
+    "message": "Display Chinese characters"
+  },
+  "consonants": {
+    "message": "Consonants"
+  },
+  "medials": {
+    "message": "Medials"
+  },
+  "finals_single": {
+    "message": "Finals (single)"
+  },
+  "finals_double": {
+    "message": "Finals (double)"
+  },
+  "finals_single_nontranscriptional": {
+    "message": "Finals (single - non-transcriptional)"
+  },
+  "finals_single_nontranscriptional_note": {
+    "message": "This sound is identified but is not used or needed as part of transcriptions. It is assumed with the consonants that use it. Also, the character that represents it may not be supported in your browser font."
+  },
+  "tones": {
+    "message": "Tones"
+  },
+  "first_tone_is_default": {
+    "message": "The first tone is the default in bopomofo, so no need to insert"
+  },
+  "Close": {
+    "message": "Close"
+  },
+  "Flashcards": {
+    "message": "Flashcards"
+  },
+  "forward": {
+    "message": "->"
+  },
+  "backward": {
+    "message": "<-"
+  },
+  "License_AGPL": {
+    "message": "License (AGPL)"
+  }
 }

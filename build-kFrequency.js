@@ -103,14 +103,12 @@ const mostFrequentChars = mostFrequentCharsPreMap.map(({
 * @property {string} 4 First item of `readings`
 */
 
-/* eslint-disable jsdoc/check-types */
 /**
  *
  * @param {CharInfo[]} freqs
  * @returns {CharInfo}
  */
 function getFirstCharInfo (freqs) {
-  /* eslint-enable jsdoc/check-types */
   return freqs.slice(0, 1)[0]; // .map(([chr]) => chr);
 }
 

@@ -1,8 +1,13 @@
 # bopomofo CHANGES
 
-## ?
+## 2.2.0
 
+- Accessiblity: Add level 1 heading
+- Linting (ESLint): Update per latest
+- Testing: Favicon no-op; update Axe test
+- Maintenance: Add `.editorconfig`
 - Docs: JSDoc (Linting)
+- npm: Update deps/devDeps
 
 ## 2.1.0
 
