@@ -1,6 +1,6 @@
 # bopomofo CHANGES
 
-## ?
+## 2.3.0
 
 - Update: Path for `core-js` file
 - npm: Switch to non-deprecated `@rollup/plugin-node-resolve`
