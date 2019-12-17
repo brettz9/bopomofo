@@ -1,5 +1,5 @@
 /* eslint-disable no-console */
-import 'core-js/fn/array/flat-map.js';
+import 'core-js/features/array/flat-map.js';
 import fs from 'fs';
 import path from 'path';
 import util from 'util';

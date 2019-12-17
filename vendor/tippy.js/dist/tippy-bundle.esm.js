@@ -2614,7 +2614,7 @@ Popper.placements = placements;
 Popper.Defaults = Defaults;
 
 /**!
-* tippy.js v5.1.1
+* tippy.js v5.1.2
 * (c) 2017-2019 atomiks
 * MIT License
 */
@@ -2637,7 +2637,7 @@ function _extends$1() {
   return _extends$1.apply(this, arguments);
 }
 
-var version = "5.1.1";
+var version = "5.1.2";
 
 /**
  * Triggers reflow
@@ -2877,7 +2877,6 @@ function useIfDefined(nextValue, currentValue) {
  */
 
 function normalizeToArray(value) {
-  // @ts-ignore
   return [].concat(value);
 }
 /**
@@ -3644,7 +3643,7 @@ function createTippy(reference, collectionProps) {
     // For touch or keyboard input, force `0` delay for UX reasons
     // Also if the instance is mounted but not visible (transitioning out),
     // ignore delay
-    if (instance.state.isMounted && !instance.state.isVisible || currentInput.isTouch || (lastTriggerEvent ? lastTriggerEvent.type === 'focus' : true)) {
+    if (instance.state.isMounted && !instance.state.isVisible || currentInput.isTouch || lastTriggerEvent && lastTriggerEvent.type === 'focus') {
       return 0;
     }
 
@@ -4215,8 +4214,10 @@ function createTippy(reference, collectionProps) {
       if (POPPER_INSTANCE_DEPENDENCIES.some(function (prop) {
         return hasOwnProperty(partialProps, prop) && partialProps[prop] !== prevProps[prop];
       })) {
+        var currentReference = instance.popperInstance.reference;
         instance.popperInstance.destroy();
         createPopperInstance();
+        instance.popperInstance.reference = currentReference;
 
         if (instance.state.isVisible) {
           instance.popperInstance.enableEventListeners();
@@ -4429,7 +4430,7 @@ tippy.setDefaultProps = setDefaultProps;
 tippy.currentInput = currentInput;
 
 /**!
-* tippy.js v5.1.1
+* tippy.js v5.1.2
 * (c) 2017-2019 atomiks
 * MIT License
 */

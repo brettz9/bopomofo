@@ -1,5 +1,5 @@
 /* eslint-disable import/no-anonymous-default-export */
-import resolve from 'rollup-plugin-node-resolve';
+import resolve from '@rollup/plugin-node-resolve';
 
 export default [
   {

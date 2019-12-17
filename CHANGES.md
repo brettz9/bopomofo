@@ -1,5 +1,11 @@
 # bopomofo CHANGES
 
+## ?
+
+- Update: Path for `core-js` file
+- npm: Switch to non-deprecated `@rollup/plugin-node-resolve`
+- npm: Update devDeps and tippy/core-js copies
+
 ## 2.2.0
 
 - Accessiblity: Add level 1 heading
