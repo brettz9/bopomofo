@@ -270,7 +270,6 @@ let possibleBopomofoSyllablesEnhanced;
  */
 export async function getRandomEnhancedSyllable () {
   if (!possibleBopomofoSyllablesEnhanced) {
-    // eslint-disable-next-line require-atomic-updates
     possibleBopomofoSyllablesEnhanced = await (
       await fetch('../../data/possibleBopomofoSyllablesEnhanced.json')
     ).json();
