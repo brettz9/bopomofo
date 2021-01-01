@@ -56,6 +56,8 @@ function _createClass(Constructor, protoProps, staticProps) {
   return Constructor;
 }
 
+/* eslint-disable node/no-unsupported-features/es-syntax */
+
 /**
  * @module SimplePrefs
  */
@@ -68,9 +70,11 @@ function _createClass(Constructor, protoProps, staticProps) {
 /**
 * @typedef {boolean|number|string} module:SimplePrefs.Value
 */
-var SimplePrefs =
-/*#__PURE__*/
-function () {
+
+/**
+ * Preferences storage.
+ */
+var SimplePrefs = /*#__PURE__*/function () {
   /**
    * @param {PlainObject} cfg
    * @param {string} cfg.namespace Avoid clashes with other apps
@@ -115,9 +119,7 @@ function () {
   }, {
     key: "getPref",
     value: function () {
-      var _getPref = _asyncToGenerator(
-      /*#__PURE__*/
-      regeneratorRuntime.mark(function _callee(key) {
+      var _getPref = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee(key) {
         var result;
         return regeneratorRuntime.wrap(function _callee$(_context) {
           while (1) {
@@ -153,9 +155,7 @@ function () {
   }, {
     key: "setPref",
     value: function () {
-      var _setPref = _asyncToGenerator(
-      /*#__PURE__*/
-      regeneratorRuntime.mark(function _callee2(key, val) {
+      var _setPref = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee2(key, val) {
         return regeneratorRuntime.wrap(function _callee2$(_context2) {
           while (1) {
             switch (_context2.prev = _context2.next) {
@@ -200,9 +200,11 @@ function () {
 
   return SimplePrefs;
 }();
-var SimplePrefsDefaults =
-/*#__PURE__*/
-function () {
+/**
+ * Defaults for SimplePrefs.
+ */
+
+var SimplePrefsDefaults = /*#__PURE__*/function () {
   /**
    *
    * @param {module:SimplePrefs.Defaults} defaults
@@ -224,9 +226,7 @@ function () {
   _createClass(SimplePrefsDefaults, [{
     key: "getPrefDefault",
     value: function () {
-      var _getPrefDefault = _asyncToGenerator(
-      /*#__PURE__*/
-      regeneratorRuntime.mark(function _callee3(key) {
+      var _getPrefDefault = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee3(key) {
         return regeneratorRuntime.wrap(function _callee3$(_context3) {
           while (1) {
             switch (_context3.prev = _context3.next) {
@@ -257,9 +257,7 @@ function () {
   }, {
     key: "setPrefDefault",
     value: function () {
-      var _setPrefDefault = _asyncToGenerator(
-      /*#__PURE__*/
-      regeneratorRuntime.mark(function _callee4(key, value) {
+      var _setPrefDefault = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee4(key, value) {
         var oldValue;
         return regeneratorRuntime.wrap(function _callee4$(_context4) {
           while (1) {

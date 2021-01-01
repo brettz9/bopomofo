@@ -1,4 +1,4 @@
-/* eslint-disable camelcase */
+/* eslint-disable camelcase -- For Chrome extension-compatible locales */
 export const tones = [
   ['¯', 'ˉ'], // First could be left empty as first tone is default for bomofo
   ['ˊ', 'ˊ'],

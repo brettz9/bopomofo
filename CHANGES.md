@@ -1,5 +1,11 @@
 # bopomofo CHANGES
 
+## 2.4.0
+
+- Update: Syllables; adjust z-index to be above dialog
+- Linting: As per latest ash-nazg
+- npm: Update devDeps and tippy and other dependency copies
+
 ## 2.3.0
 
 - Update: Path for `core-js` file

@@ -1,4 +1,4 @@
-/* eslint-disable camelcase */
+/* eslint-disable camelcase -- For Chrome extension-compatible locales */
 
 import {jml, $, body, nbsp} from '../../vendor/jamilih/dist/jml-es.js';
 import loadStylesheets from '../../vendor/load-stylesheets/dist/index-es.js';
@@ -13,6 +13,7 @@ import {SimplePrefs} from '../../vendor/simple-prefs/index.esm.js';
 import dialogPolyfill from
   '../../vendor/dialog-polyfill/dist/dialog-polyfill.esm.js';
 
+const tippyZIndex = 100150; // dialog is set to 100149
 const synth = window.speechSynthesis;
 
 const backgroundColors = [
@@ -49,6 +50,7 @@ const [_] = await Promise.all([
   loadStylesheets([
     ['data:image/x-icon;,', {image: false, favicon: true}], // Suppress console
     '../../vendor/dialog-polyfill/dialog-polyfill.css',
+    '../../vendor/tippy.js/dist/tippy.css',
     'index.css'
   ])
 ]);
@@ -152,6 +154,7 @@ async function init () {
                     syllableBPMFChars +
                     (displayChars ? ')' : '');
                 tippy('button[data-tippy-content]', {
+                  zIndex: tippyZIndex,
                   followCursor: true,
                   distance: 100,
                   placement: 'right'
@@ -216,8 +219,6 @@ async function init () {
           Object.entries(defaults).map(async ([preference, defaultValue]) => {
             const type = typeof defaultValue;
             switch (type) {
-            default:
-              throw new TypeError('Unexpected default value type');
             case 'boolean':
               return ['div', [
                 ['label', [
@@ -234,6 +235,8 @@ async function init () {
                   _(preference)
                 ]]
               ]];
+            default:
+              throw new TypeError('Unexpected default value type');
             }
           })
         )
@@ -369,6 +372,7 @@ window.addEventListener('click', function ({target}) {
 });
 
 tippy('[data-tippy-content]', {
+  zIndex: tippyZIndex,
   followCursor: true,
   distance: 50,
   placement: 'right'

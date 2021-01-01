@@ -1,4 +1,4 @@
-/* eslint-disable no-console */
+/* eslint-disable no-console -- CLI */
 import 'core-js/features/array/flat-map.js';
 import fs from 'fs';
 import path from 'path';
@@ -70,7 +70,7 @@ const mostFrequentChars = mostFrequentCharsPreMap.map(({
   }
   if (Array.isArray(kSimplifiedVariant)) {
     kSimplifiedVariant = String.fromCodePoint(
-      parseInt(kSimplifiedVariant[0].slice(2), 16)
+      Number.parseInt(kSimplifiedVariant[0].slice(2), 16)
     );
   }
   const uniquePinyinNoTones = new Set(readings.map(
@@ -79,16 +79,14 @@ const mostFrequentChars = mostFrequentCharsPreMap.map(({
   // Won't be good for quizzing if has other possible sounds;
   //   however, some sounds may only be mixed with others (like "dei"?)
   const nonUnique = uniquePinyinNoTones.size !== 1;
-  let sound;
-  if (nonUnique) {
-    sound = readings; // .map(stripPinyinDiacritics);
-  } else {
-    sound = uniquePinyinNoTones.values().next().value;
-  }
+  const sound = nonUnique
+    ? readings // .map(stripPinyinDiacritics);
+    : uniquePinyinNoTones.values().next().value;
+
   return [
     kSimplifiedVariant || c,
     sound,
-    parseInt(kFrequency),
+    Number.parseInt(kFrequency),
     nonUnique,
     readings[0]
   ]; // , kFrequency, kTotalStrokes['zh-Hans']];
@@ -121,7 +119,7 @@ const possibleBopomofoSyllablesEnhanced = possibleBopomofoSyllables.map(
     //   frequency as possible
     let freqs, ct = 1;
     do {
-      // eslint-disable-next-line no-loop-func
+      // eslint-disable-next-line no-loop-func -- Variable content
       freqs = freqsAll.filter(([, , kFrequency, nonUnique]) => {
         return !nonUnique && kFrequency === ct;
       });

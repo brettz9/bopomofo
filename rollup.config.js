@@ -1,4 +1,4 @@
-/* eslint-disable import/no-anonymous-default-export */
+/* eslint-disable import/no-anonymous-default-export -- Rollup config */
 import resolve from '@rollup/plugin-node-resolve';
 
 export default [
@@ -12,7 +12,7 @@ export default [
     //   up needing more build steps than this dist
     //   file, it could require more work than this.
     // For some reason, this requires `process`!
-    input: 'node_modules/tippy.js/dist/tippy-bundle.esm.js',
+    input: 'node_modules/tippy.js/dist/tippy.esm.js',
     output: {
       banner: 'var process = {env: {NODE_ENV: "production"}}',
       format: 'esm',
