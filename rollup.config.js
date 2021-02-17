@@ -1,4 +1,3 @@
-/* eslint-disable import/no-anonymous-default-export -- Rollup config */
 import resolve from '@rollup/plugin-node-resolve';
 
 export default [

@@ -14,7 +14,8 @@ test('Speech Tester: Get sounds starting', async (t) => {
   const buttonPlaySelector = Selector('button#play');
   await t.expect(
     buttonPlaySelector.exists
-  ).ok().expect(
-    voiceSpeaking
   ).ok().click(buttonPlaySelector);
+  await t.expect(
+    voiceSpeaking()
+  ).ok();
 });

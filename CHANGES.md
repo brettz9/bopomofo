@@ -1,5 +1,18 @@
 # bopomofo CHANGES
 
+## 3.0.0
+
+- Breaking change: Switch to native ESM
+- Breaking change: Bump to Node 10+ (ESM and flags minimum globals, etc.
+  for ash-nazg setting environment)
+- Babel: Switch to JSON extenson
+- Build: Update copies
+- Linting: As per latest ash-nazg; check cjs
+- Testing: Update test (now visibly broken as should be)
+- npm: Switch to server without reported vulernabilities
+- npm: Update devDeps (and switch to ash-nazg's current peerDeps)
+- Chore: Drop `.remarkrc`
+
 ## 2.4.0
 
 - Update: Syllables; adjust z-index to be above dialog

@@ -22,26 +22,19 @@ module.exports = {
       'window.speechSynthesis'
     ]
   },
-  extends: ['ash-nazg/sauron', 'plugin:testcafe/recommended'],
-  globals: {
-    Atomics: 'readonly',
-    SharedArrayBuffer: 'readonly'
-  },
+  extends: ['ash-nazg/sauron-overrides', 'plugin:testcafe/recommended'],
   overrides: [
     {
-      files: '.*.js',
-      extends: ['ash-nazg/sauron', 'plugin:node/recommended-script'],
-      rules: {
-        'import/no-commonjs': 0
+      files: 'build/build-kFrequency.js',
+
+      // import.meta.url
+      parser: '@babel/eslint-parser',
+      parserOptions: {
+        requireConfigFile: false
       }
     }
   ],
-  parserOptions: {
-    ecmaVersion: 2018,
-    sourceType: 'module'
-  },
   rules: {
-    'require-jsdoc': 0,
-    'standard/computed-property-even-spacing': 0
+    'require-jsdoc': 0
   }
 };

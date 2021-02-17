@@ -4,7 +4,7 @@ import fs from 'fs';
 import path from 'path';
 import util from 'util';
 import unihanETL from 'node-unihan-etl';
-import {possibleBopomofoSyllables} from './src/index.js';
+import {possibleBopomofoSyllables} from '../src/index.js';
 
 /**
  *
@@ -183,14 +183,15 @@ console.log(
 );
 */
 
-const possibleBopomofoSyllablesEnhancedPath = path.join(
-  __dirname, 'data', 'possibleBopomofoSyllablesEnhanced.json'
+const possibleBopomofoSyllablesEnhancedPath = new URL(
+  '../data/possibleBopomofoSyllablesEnhanced.json',
+  import.meta.url
 );
 await writeFile(
   possibleBopomofoSyllablesEnhancedPath,
   JSON.stringify(possibleBopomofoSyllablesEnhanced, null, 2) + '\n'
 );
-console.log(`Wrote file ${possibleBopomofoSyllablesEnhancedPath}`);
+console.log(`Wrote file ${possibleBopomofoSyllablesEnhancedPath.href}`);
 
 /*
 console.log('mostFrequentChars', mostFrequentChars);
