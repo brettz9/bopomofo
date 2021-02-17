@@ -5,12 +5,15 @@
 - Breaking change: Switch to native ESM
 - Breaking change: Bump to Node 10+ (ESM and flags minimum globals, etc.
   for ash-nazg setting environment)
-- Babel: Switch to JSON extenson
 - Build: Update copies
+
+**Dev-focused:**
 - Linting: As per latest ash-nazg; check cjs
 - Testing: Update test (now visibly broken as should be)
+- Babel: Switch to JSON extenson
 - npm: Switch to server without reported vulernabilities
 - npm: Update devDeps (and switch to ash-nazg's current peerDeps)
+- npm: Switch to pnpm
 - Chore: Drop `.remarkrc`
 
 ## 2.4.0

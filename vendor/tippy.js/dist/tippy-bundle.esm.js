@@ -395,6 +395,7 @@ var arrow$1 = {
   requiresIfExists: ['preventOverflow']
 };
 
+var round = Math.round;
 var unsetSides = {
   top: 'auto',
   right: 'auto',
@@ -410,8 +411,8 @@ function roundOffsetsByDPR(_ref) {
   var win = window;
   var dpr = win.devicePixelRatio || 1;
   return {
-    x: Math.round(x * dpr) / dpr || 0,
-    y: Math.round(y * dpr) / dpr || 0
+    x: round(round(x * dpr) / dpr) || 0,
+    y: round(round(y * dpr) / dpr) || 0
   };
 }
 
@@ -427,7 +428,7 @@ function mapToStyles(_ref2) {
       adaptive = _ref2.adaptive,
       roundOffsets = _ref2.roundOffsets;
 
-  var _ref3 = roundOffsets ? roundOffsetsByDPR(offsets) : offsets,
+  var _ref3 = roundOffsets === true ? roundOffsetsByDPR(offsets) : typeof roundOffsets === 'function' ? roundOffsets(offsets) : offsets,
       _ref3$x = _ref3.x,
       x = _ref3$x === void 0 ? 0 : _ref3$x,
       _ref3$y = _ref3.y,
@@ -736,7 +737,7 @@ function listScrollParents(element, list) {
   }
 
   var scrollParent = getScrollParent(element);
-  var isBody = getNodeName(scrollParent) === 'body';
+  var isBody = scrollParent === element.ownerDocument.body;
   var win = getWindow(scrollParent);
   var target = isBody ? [win].concat(win.visualViewport || [], isScrollParent(scrollParent) ? scrollParent : []) : scrollParent;
   var updatedList = list.concat(target);
