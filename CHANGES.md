@@ -12,6 +12,7 @@
 - Testing: Update test (now visibly broken as should be)
 - Babel: Switch to JSON extenson
 - npm: Switch to server without reported vulernabilities
+- npm: Add `prepublishOnly` script
 - npm: Update devDeps (and switch to ash-nazg's current peerDeps)
 - npm: Switch to pnpm
 - Chore: Drop `.remarkrc`

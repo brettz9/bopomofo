@@ -5,6 +5,7 @@
   "type": "module",
   "description": "Tool for studying bopomofo transliteration system",
   "scripts": {
+    "prepublishOnly": "pnpm i",
     "eslint": "eslint --ext=js,cjs,md,html .",
     "open": "open-cli http://localhost:8049/tools/speech-tester/ && npm start",
     "start": "http-server -p 8049",
