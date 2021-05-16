@@ -1,5 +1,9 @@
 # bopomofo CHANGES
 
+## 3.0.1
+
+- Docs: Add screenshots
+
 ## 3.0.0
 
 - Breaking change: Switch to native ESM

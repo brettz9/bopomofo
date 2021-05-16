@@ -1,7 +1,7 @@
 {
   "name": "bopomofo",
-  "version": "3.0.0",
-  "module": "src/index.js",
+  "version": "3.0.1",
+  "module": "./src/index.js",
   "type": "module",
   "description": "Tool for studying bopomofo transliteration system",
   "scripts": {
