@@ -3,6 +3,7 @@
 ## 3.0.1
 
 - Docs: Add screenshots
+- npm: Use relative path for `module`
 
 ## 3.0.0
 
