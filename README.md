@@ -4,6 +4,15 @@ A web app tool for learning the phonetic
 [Bopomofo](https://en.wikipedia.org/wiki/Bopomofo)/[Zhuyin](https://en.wikipedia.org/wiki/Zhuyin_table)
 system for Mandarin Chinese.
 
+While the original Bopomofo symbols are provided, it can also be used for
+just learning the sounds as used in mainland China.
+
+## Screenshots
+
+![Main view](./screenshots/main.png)
+![Flashcards](./screenshots/flashcards.png)
+![Letter button](./screenshots/letter-button.png)
+
 ## Features
 
 - Allow input into textarea of Bopomofo text based on pinyin buttons of
