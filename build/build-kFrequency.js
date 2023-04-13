@@ -22,8 +22,11 @@ const writeFile = util.promisify(fs.writeFile);
 // console.log(await unihanETL({version: true}), 'Version returned.');
 
 await unihanETL({
-  destination: 'unihan.json',
-  fields: ['kFrequency', 'kHanyuPinyin', 'kTotalStrokes', 'kSimplifiedVariant']
+  destination: 'unihan.json'
+  // Todo: Current bug doesn't allow passing just one field, so have to
+  //         do all
+  // fields:
+  //  ['kFrequency', 'kHanyuPinyin', 'kTotalStrokes', 'kSimplifiedVariant']
 });
 
 const unihanFile = path.join(process.cwd(), 'unihan.json');
