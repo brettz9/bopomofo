@@ -3,6 +3,7 @@
 ## 4.0.0
 
 - chore: Bump to Node 14
+- chore: update freqs
 - chore: add lint script, remove core-js and regenerator-runtime;
   update devDeps.; linting
 
