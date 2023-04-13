@@ -2,13 +2,16 @@
 
 module.exports = {
   env: {
-    browser: true,
-    es6: true
+    browser: true
+  },
+  parserOptions: {
+    ecmaVersion: 2022
   },
   settings: {
     polyfills: [
       'Array.isArray',
       'console',
+      'document.title',
       'Error',
       'fetch',
       'JSON',

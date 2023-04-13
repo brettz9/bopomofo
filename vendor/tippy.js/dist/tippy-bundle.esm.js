@@ -35,10 +35,11 @@ function getNodeName(element) {
   return element ? (element.nodeName || '').toLowerCase() : null;
 }
 
-/*:: import type { Window } from '../types'; */
-
-/*:: declare function getWindow(node: Node | Window): Window; */
 function getWindow(node) {
+  if (node == null) {
+    return window;
+  }
+
   if (node.toString() !== '[object Window]') {
     var ownerDocument = node.ownerDocument;
     return ownerDocument ? ownerDocument.defaultView || window : window;
@@ -47,26 +48,22 @@ function getWindow(node) {
   return node;
 }
 
-/*:: declare function isElement(node: mixed): boolean %checks(node instanceof
-  Element); */
-
-function isElement(node) {
+function isElement$1(node) {
   var OwnElement = getWindow(node).Element;
   return node instanceof OwnElement || node instanceof Element;
 }
-/*:: declare function isHTMLElement(node: mixed): boolean %checks(node instanceof
-  HTMLElement); */
-
 
 function isHTMLElement(node) {
   var OwnElement = getWindow(node).HTMLElement;
   return node instanceof OwnElement || node instanceof HTMLElement;
 }
-/*:: declare function isShadowRoot(node: mixed): boolean %checks(node instanceof
-  ShadowRoot); */
-
 
 function isShadowRoot(node) {
+  // IE 11 has no ShadowRoot
+  if (typeof ShadowRoot === 'undefined') {
+    return false;
+  }
+
   var OwnElement = getWindow(node).ShadowRoot;
   return node instanceof OwnElement || node instanceof ShadowRoot;
 }
@@ -100,7 +97,7 @@ function applyStyles(_ref) {
   });
 }
 
-function effect(_ref2) {
+function effect$2(_ref2) {
   var state = _ref2.state;
   var initialStyles = {
     popper: {
@@ -115,6 +112,7 @@ function effect(_ref2) {
     reference: {}
   };
   Object.assign(state.elements.popper.style, initialStyles.popper);
+  state.styles = initialStyles;
 
   if (state.elements.arrow) {
     Object.assign(state.elements.arrow.style, initialStyles.arrow);
@@ -149,22 +147,94 @@ var applyStyles$1 = {
   enabled: true,
   phase: 'write',
   fn: applyStyles,
-  effect: effect,
+  effect: effect$2,
   requires: ['computeStyles']
 };
 
-function getBasePlacement(placement) {
+function getBasePlacement$1(placement) {
   return placement.split('-')[0];
 }
 
-// Returns the layout rect of an element relative to its offsetParent. Layout
+var max = Math.max;
+var min = Math.min;
+var round = Math.round;
+
+function getUAString() {
+  var uaData = navigator.userAgentData;
+
+  if (uaData != null && uaData.brands && Array.isArray(uaData.brands)) {
+    return uaData.brands.map(function (item) {
+      return item.brand + "/" + item.version;
+    }).join(' ');
+  }
+
+  return navigator.userAgent;
+}
+
+function isLayoutViewport() {
+  return !/^((?!chrome|android).)*safari/i.test(getUAString());
+}
+
+function getBoundingClientRect(element, includeScale, isFixedStrategy) {
+  if (includeScale === void 0) {
+    includeScale = false;
+  }
+
+  if (isFixedStrategy === void 0) {
+    isFixedStrategy = false;
+  }
+
+  var clientRect = element.getBoundingClientRect();
+  var scaleX = 1;
+  var scaleY = 1;
+
+  if (includeScale && isHTMLElement(element)) {
+    scaleX = element.offsetWidth > 0 ? round(clientRect.width) / element.offsetWidth || 1 : 1;
+    scaleY = element.offsetHeight > 0 ? round(clientRect.height) / element.offsetHeight || 1 : 1;
+  }
+
+  var _ref = isElement$1(element) ? getWindow(element) : window,
+      visualViewport = _ref.visualViewport;
+
+  var addVisualOffsets = !isLayoutViewport() && isFixedStrategy;
+  var x = (clientRect.left + (addVisualOffsets && visualViewport ? visualViewport.offsetLeft : 0)) / scaleX;
+  var y = (clientRect.top + (addVisualOffsets && visualViewport ? visualViewport.offsetTop : 0)) / scaleY;
+  var width = clientRect.width / scaleX;
+  var height = clientRect.height / scaleY;
+  return {
+    width: width,
+    height: height,
+    top: y,
+    right: x + width,
+    bottom: y + height,
+    left: x,
+    x: x,
+    y: y
+  };
+}
+
 // means it doesn't take into account transforms.
+
 function getLayoutRect(element) {
+  var clientRect = getBoundingClientRect(element); // Use the clientRect sizes if it's not been transformed.
+  // Fixes https://github.com/popperjs/popper-core/issues/1223
+
+  var width = element.offsetWidth;
+  var height = element.offsetHeight;
+
+  if (Math.abs(clientRect.width - width) <= 1) {
+    width = clientRect.width;
+  }
+
+  if (Math.abs(clientRect.height - height) <= 1) {
+    height = clientRect.height;
+  }
+
   return {
     x: element.offsetLeft,
     y: element.offsetTop,
-    width: element.offsetWidth,
-    height: element.offsetHeight
+    width: width,
+    height: height
   };
 }
 
@@ -201,7 +271,7 @@ function isTableElement(element) {
 
 function getDocumentElement(element) {
   // $FlowFixMe[incompatible-return]: assume body is always available
-  return ((isElement(element) ? element.ownerDocument : // $FlowFixMe[prop-missing]
+  return ((isElement$1(element) ? element.ownerDocument : // $FlowFixMe[prop-missing]
   element.document) || window.document).documentElement;
 }
 
@@ -214,9 +284,8 @@ function getParentNode(element) {
     // $FlowFixMe[incompatible-return]
     // $FlowFixMe[prop-missing]
     element.assignedSlot || // step into the shadow DOM of the parent of a slotted node
-    element.parentNode || // DOM Element detected
-    // $FlowFixMe[incompatible-return]: need a better way to handle this...
-    element.host || // ShadowRoot detected
+    element.parentNode || ( // DOM Element detected
+    isShadowRoot(element) ? element.host : null) || // ShadowRoot detected
     // $FlowFixMe[incompatible-call]: HTMLElement is a Node
     getDocumentElement(element) // fallback
 
@@ -229,29 +298,36 @@ function getTrueOffsetParent(element) {
     return null;
   }
 
-  var offsetParent = element.offsetParent;
-
-  if (offsetParent) {
-    var html = getDocumentElement(offsetParent);
-
-    if (getNodeName(offsetParent) === 'body' && getComputedStyle(offsetParent).position === 'static' && getComputedStyle(html).position !== 'static') {
-      return html;
-    }
-  }
-
-  return offsetParent;
+  return element.offsetParent;
 } // `.offsetParent` reports `null` for fixed elements, while absolute elements
 // return the containing block
 
 
 function getContainingBlock(element) {
+  var isFirefox = /firefox/i.test(getUAString());
+  var isIE = /Trident/i.test(getUAString());
+
+  if (isIE && isHTMLElement(element)) {
+    // In IE 9, 10 and 11 fixed elements containing block is always established by the viewport
+    var elementCss = getComputedStyle(element);
+
+    if (elementCss.position === 'fixed') {
+      return null;
+    }
+  }
+
   var currentNode = getParentNode(element);
+
+  if (isShadowRoot(currentNode)) {
+    currentNode = currentNode.host;
+  }
 
   while (isHTMLElement(currentNode) && ['html', 'body'].indexOf(getNodeName(currentNode)) < 0) {
     var css = getComputedStyle(currentNode); // This is non-exhaustive but covers the most common CSS properties that
     // create a containing block.
+    // https://developer.mozilla.org/en-US/docs/Web/CSS/Containing_block#identifying_the_containing_block
 
-    if (css.transform !== 'none' || css.perspective !== 'none' || css.willChange && css.willChange !== 'auto') {
+    if (css.transform !== 'none' || css.perspective !== 'none' || css.contain === 'paint' || ['transform', 'perspective'].indexOf(css.willChange) !== -1 || isFirefox && css.willChange === 'filter' || isFirefox && css.filter && css.filter !== 'none') {
       return currentNode;
     } else {
       currentNode = currentNode.parentNode;
@@ -271,7 +347,7 @@ function getOffsetParent(element) {
     offsetParent = getTrueOffsetParent(offsetParent);
   }
 
-  if (offsetParent && getNodeName(offsetParent) === 'body' && getComputedStyle(offsetParent).position === 'static') {
+  if (offsetParent && (getNodeName(offsetParent) === 'html' || getNodeName(offsetParent) === 'body' && getComputedStyle(offsetParent).position === 'static')) {
     return window;
   }
 
@@ -282,8 +358,12 @@ function getMainAxisFromPlacement(placement) {
   return ['top', 'bottom'].indexOf(placement) >= 0 ? 'x' : 'y';
 }
 
-function within(min, value, max) {
-  return Math.max(min, Math.min(value, max));
+function within(min$1, value, max$1) {
+  return max(min$1, min(value, max$1));
+}
+function withinMaxClamp(min, value, max) {
+  var v = within(min, value, max);
+  return v > max ? max : v;
 }
 
 function getFreshSideObject() {
@@ -296,7 +376,7 @@ function getFreshSideObject() {
 }
 
 function mergePaddingObject(paddingObject) {
-  return Object.assign(Object.assign({}, getFreshSideObject()), paddingObject);
+  return Object.assign({}, getFreshSideObject(), paddingObject);
 }
 
 function expandToHashMap(value, keys) {
@@ -306,14 +386,22 @@ function expandToHashMap(value, keys) {
   }, {});
 }
 
+var toPaddingObject = function toPaddingObject(padding, state) {
+  padding = typeof padding === 'function' ? padding(Object.assign({}, state.rects, {
+    placement: state.placement
+  })) : padding;
+  return mergePaddingObject(typeof padding !== 'number' ? padding : expandToHashMap(padding, basePlacements));
+};
+
 function arrow(_ref) {
   var _state$modifiersData$;
 
   var state = _ref.state,
-      name = _ref.name;
+      name = _ref.name,
+      options = _ref.options;
   var arrowElement = state.elements.arrow;
   var popperOffsets = state.modifiersData.popperOffsets;
-  var basePlacement = getBasePlacement(state.placement);
+  var basePlacement = getBasePlacement$1(state.placement);
   var axis = getMainAxisFromPlacement(basePlacement);
   var isVertical = [left, right].indexOf(basePlacement) >= 0;
   var len = isVertical ? 'height' : 'width';
@@ -322,7 +410,7 @@ function arrow(_ref) {
     return;
   }
 
-  var paddingObject = state.modifiersData[name + "#persistent"].padding;
+  var paddingObject = toPaddingObject(options.padding, state);
   var arrowRect = getLayoutRect(arrowElement);
   var minProp = axis === 'y' ? top : left;
   var maxProp = axis === 'y' ? bottom : right;
@@ -344,12 +432,9 @@ function arrow(_ref) {
 
 function effect$1(_ref2) {
   var state = _ref2.state,
-      options = _ref2.options,
-      name = _ref2.name;
+      options = _ref2.options;
   var _options$element = options.element,
-      arrowElement = _options$element === void 0 ? '[data-popper-arrow]' : _options$element,
-      _options$padding = options.padding,
-      padding = _options$padding === void 0 ? 0 : _options$padding;
+      arrowElement = _options$element === void 0 ? '[data-popper-arrow]' : _options$element;
 
   if (arrowElement == null) {
     return;
@@ -379,9 +464,6 @@ function effect$1(_ref2) {
   }
 
   state.elements.arrow = arrowElement;
-  state.modifiersData[name + "#persistent"] = {
-    padding: mergePaddingObject(typeof padding !== 'number' ? padding : expandToHashMap(padding, basePlacements))
-  };
 } // eslint-disable-next-line import/no-unused-modules
 
 
@@ -395,7 +477,10 @@ var arrow$1 = {
   requiresIfExists: ['preventOverflow']
 };
 
-var round = Math.round;
+function getVariation(placement) {
+  return placement.split('-')[1];
+}
+
 var unsetSides = {
   top: 'auto',
   right: 'auto',
@@ -405,14 +490,13 @@ var unsetSides = {
 // Zooming can change the DPR, but it seems to report a value that will
 // cleanly divide the values into the appropriate subpixels.
 
-function roundOffsetsByDPR(_ref) {
+function roundOffsetsByDPR(_ref, win) {
   var x = _ref.x,
       y = _ref.y;
-  var win = window;
   var dpr = win.devicePixelRatio || 1;
   return {
-    x: round(round(x * dpr) / dpr) || 0,
-    y: round(round(y * dpr) / dpr) || 0
+    x: round(x * dpr) / dpr || 0,
+    y: round(y * dpr) / dpr || 0
   };
 }
 
@@ -422,18 +506,28 @@ function mapToStyles(_ref2) {
   var popper = _ref2.popper,
       popperRect = _ref2.popperRect,
       placement = _ref2.placement,
+      variation = _ref2.variation,
       offsets = _ref2.offsets,
       position = _ref2.position,
       gpuAcceleration = _ref2.gpuAcceleration,
       adaptive = _ref2.adaptive,
-      roundOffsets = _ref2.roundOffsets;
+      roundOffsets = _ref2.roundOffsets,
+      isFixed = _ref2.isFixed;
+  var _offsets$x = offsets.x,
+      x = _offsets$x === void 0 ? 0 : _offsets$x,
+      _offsets$y = offsets.y,
+      y = _offsets$y === void 0 ? 0 : _offsets$y;
 
-  var _ref3 = roundOffsets === true ? roundOffsetsByDPR(offsets) : typeof roundOffsets === 'function' ? roundOffsets(offsets) : offsets,
-      _ref3$x = _ref3.x,
-      x = _ref3$x === void 0 ? 0 : _ref3$x,
-      _ref3$y = _ref3.y,
-      y = _ref3$y === void 0 ? 0 : _ref3$y;
+  var _ref3 = typeof roundOffsets === 'function' ? roundOffsets({
+    x: x,
+    y: y
+  }) : {
+    x: x,
+    y: y
+  };
 
+  x = _ref3.x;
+  y = _ref3.y;
   var hasX = offsets.hasOwnProperty('x');
   var hasY = offsets.hasOwnProperty('y');
   var sideX = left;
@@ -442,23 +536,34 @@ function mapToStyles(_ref2) {
 
   if (adaptive) {
     var offsetParent = getOffsetParent(popper);
+    var heightProp = 'clientHeight';
+    var widthProp = 'clientWidth';
 
     if (offsetParent === getWindow(popper)) {
       offsetParent = getDocumentElement(popper);
+
+      if (getComputedStyle(offsetParent).position !== 'static' && position === 'absolute') {
+        heightProp = 'scrollHeight';
+        widthProp = 'scrollWidth';
+      }
     } // $FlowFixMe[incompatible-cast]: force type refinement, we compare offsetParent with window above, but Flow doesn't detect it
 
-    /*:: offsetParent = (offsetParent: Element); */
 
+    offsetParent = offsetParent;
 
-    if (placement === top) {
+    if (placement === top || (placement === left || placement === right) && variation === end) {
       sideY = bottom;
-      y -= offsetParent.clientHeight - popperRect.height;
+      var offsetY = isFixed && offsetParent === win && win.visualViewport ? win.visualViewport.height : // $FlowFixMe[prop-missing]
+      offsetParent[heightProp];
+      y -= offsetY - popperRect.height;
       y *= gpuAcceleration ? 1 : -1;
     }
 
-    if (placement === left) {
+    if (placement === left || (placement === top || placement === bottom) && variation === end) {
       sideX = right;
-      x -= offsetParent.clientWidth - popperRect.width;
+      var offsetX = isFixed && offsetParent === win && win.visualViewport ? win.visualViewport.width : // $FlowFixMe[prop-missing]
+      offsetParent[widthProp];
+      x -= offsetX - popperRect.width;
       x *= gpuAcceleration ? 1 : -1;
     }
   }
@@ -467,18 +572,29 @@ function mapToStyles(_ref2) {
     position: position
   }, adaptive && unsetSides);
 
+  var _ref4 = roundOffsets === true ? roundOffsetsByDPR({
+    x: x,
+    y: y
+  }, getWindow(popper)) : {
+    x: x,
+    y: y
+  };
+
+  x = _ref4.x;
+  y = _ref4.y;
+
   if (gpuAcceleration) {
     var _Object$assign;
 
-    return Object.assign(Object.assign({}, commonStyles), {}, (_Object$assign = {}, _Object$assign[sideY] = hasY ? '0' : '', _Object$assign[sideX] = hasX ? '0' : '', _Object$assign.transform = (win.devicePixelRatio || 1) < 2 ? "translate(" + x + "px, " + y + "px)" : "translate3d(" + x + "px, " + y + "px, 0)", _Object$assign));
+    return Object.assign({}, commonStyles, (_Object$assign = {}, _Object$assign[sideY] = hasY ? '0' : '', _Object$assign[sideX] = hasX ? '0' : '', _Object$assign.transform = (win.devicePixelRatio || 1) <= 1 ? "translate(" + x + "px, " + y + "px)" : "translate3d(" + x + "px, " + y + "px, 0)", _Object$assign));
   }
 
-  return Object.assign(Object.assign({}, commonStyles), {}, (_Object$assign2 = {}, _Object$assign2[sideY] = hasY ? y + "px" : '', _Object$assign2[sideX] = hasX ? x + "px" : '', _Object$assign2.transform = '', _Object$assign2));
+  return Object.assign({}, commonStyles, (_Object$assign2 = {}, _Object$assign2[sideY] = hasY ? y + "px" : '', _Object$assign2[sideX] = hasX ? x + "px" : '', _Object$assign2.transform = '', _Object$assign2));
 }
 
-function computeStyles(_ref4) {
-  var state = _ref4.state,
-      options = _ref4.options;
+function computeStyles(_ref5) {
+  var state = _ref5.state,
+      options = _ref5.options;
   var _options$gpuAccelerat = options.gpuAcceleration,
       gpuAcceleration = _options$gpuAccelerat === void 0 ? true : _options$gpuAccelerat,
       _options$adaptive = options.adaptive,
@@ -497,14 +613,16 @@ function computeStyles(_ref4) {
   }
 
   var commonStyles = {
-    placement: getBasePlacement(state.placement),
+    placement: getBasePlacement$1(state.placement),
+    variation: getVariation(state.placement),
     popper: state.elements.popper,
     popperRect: state.rects.popper,
-    gpuAcceleration: gpuAcceleration
+    gpuAcceleration: gpuAcceleration,
+    isFixed: state.options.strategy === 'fixed'
   };
 
   if (state.modifiersData.popperOffsets != null) {
-    state.styles.popper = Object.assign(Object.assign({}, state.styles.popper), mapToStyles(Object.assign(Object.assign({}, commonStyles), {}, {
+    state.styles.popper = Object.assign({}, state.styles.popper, mapToStyles(Object.assign({}, commonStyles, {
       offsets: state.modifiersData.popperOffsets,
       position: state.options.strategy,
       adaptive: adaptive,
@@ -513,7 +631,7 @@ function computeStyles(_ref4) {
   }
 
   if (state.modifiersData.arrow != null) {
-    state.styles.arrow = Object.assign(Object.assign({}, state.styles.arrow), mapToStyles(Object.assign(Object.assign({}, commonStyles), {}, {
+    state.styles.arrow = Object.assign({}, state.styles.arrow, mapToStyles(Object.assign({}, commonStyles, {
       offsets: state.modifiersData.arrow,
       position: 'absolute',
       adaptive: false,
@@ -521,7 +639,7 @@ function computeStyles(_ref4) {
     })));
   }
 
-  state.attributes.popper = Object.assign(Object.assign({}, state.attributes.popper), {}, {
+  state.attributes.popper = Object.assign({}, state.attributes.popper, {
     'data-popper-placement': state.placement
   });
 } // eslint-disable-next-line import/no-unused-modules
@@ -539,7 +657,7 @@ var passive = {
   passive: true
 };
 
-function effect$2(_ref) {
+function effect(_ref) {
   var state = _ref.state,
       instance = _ref.instance,
       options = _ref.options;
@@ -579,11 +697,11 @@ var eventListeners = {
   enabled: true,
   phase: 'write',
   fn: function fn() {},
-  effect: effect$2,
+  effect: effect,
   data: {}
 };
 
-var hash = {
+var hash$1 = {
   left: 'right',
   right: 'left',
   bottom: 'top',
@@ -591,32 +709,18 @@ var hash = {
 };
 function getOppositePlacement(placement) {
   return placement.replace(/left|right|bottom|top/g, function (matched) {
-    return hash[matched];
+    return hash$1[matched];
   });
 }
 
-var hash$1 = {
+var hash = {
   start: 'end',
   end: 'start'
 };
 function getOppositeVariationPlacement(placement) {
   return placement.replace(/start|end/g, function (matched) {
-    return hash$1[matched];
+    return hash[matched];
   });
-}
-
-function getBoundingClientRect(element) {
-  var rect = element.getBoundingClientRect();
-  return {
-    width: rect.width,
-    height: rect.height,
-    top: rect.top,
-    right: rect.right,
-    bottom: rect.bottom,
-    left: rect.left,
-    x: rect.left,
-    y: rect.top
-  };
 }
 
 function getWindowScroll(node) {
@@ -640,31 +744,21 @@ function getWindowScrollBarX(element) {
   return getBoundingClientRect(getDocumentElement(element)).left + getWindowScroll(element).scrollLeft;
 }
 
-function getViewportRect(element) {
+function getViewportRect(element, strategy) {
   var win = getWindow(element);
   var html = getDocumentElement(element);
   var visualViewport = win.visualViewport;
   var width = html.clientWidth;
   var height = html.clientHeight;
   var x = 0;
-  var y = 0; // NB: This isn't supported on iOS <= 12. If the keyboard is open, the popper
-  // can be obscured underneath it.
-  // Also, `html.clientHeight` adds the bottom bar height in Safari iOS, even
-  // if it isn't open, so if this isn't available, the popper will be detected
-  // to overflow the bottom of the screen too early.
+  var y = 0;
 
   if (visualViewport) {
     width = visualViewport.width;
-    height = visualViewport.height; // Uses Layout Viewport (like Chrome; Safari does not currently)
-    // In Chrome, it returns a value very close to 0 (+/-) but contains rounding
-    // errors due to floating point numbers, so we need to check precision.
-    // Safari returns a number <= 0, usually < -1 when pinch-zoomed
-    // Feature detection fails in mobile emulation mode in Chrome.
-    // Math.abs(win.innerWidth / visualViewport.scale - visualViewport.width) <
-    // 0.001
-    // Fallback here: "Not Safari" userAgent
+    height = visualViewport.height;
+    var layoutViewport = isLayoutViewport();
 
-    if (!/^((?!chrome|android).)*safari/i.test(navigator.userAgent)) {
+    if (layoutViewport || !layoutViewport && strategy === 'fixed') {
       x = visualViewport.offsetLeft;
       y = visualViewport.offsetTop;
     }
@@ -681,16 +775,18 @@ function getViewportRect(element) {
 // of the `<html>` and `<body>` rect bounds if horizontally scrollable
 
 function getDocumentRect(element) {
+  var _element$ownerDocumen;
+
   var html = getDocumentElement(element);
   var winScroll = getWindowScroll(element);
-  var body = element.ownerDocument.body;
-  var width = Math.max(html.scrollWidth, html.clientWidth, body ? body.scrollWidth : 0, body ? body.clientWidth : 0);
-  var height = Math.max(html.scrollHeight, html.clientHeight, body ? body.scrollHeight : 0, body ? body.clientHeight : 0);
+  var body = (_element$ownerDocumen = element.ownerDocument) == null ? void 0 : _element$ownerDocumen.body;
+  var width = max(html.scrollWidth, html.clientWidth, body ? body.scrollWidth : 0, body ? body.clientWidth : 0);
+  var height = max(html.scrollHeight, html.clientHeight, body ? body.scrollHeight : 0, body ? body.clientHeight : 0);
   var x = -winScroll.scrollLeft + getWindowScrollBarX(element);
   var y = -winScroll.scrollTop;
 
   if (getComputedStyle(body || html).direction === 'rtl') {
-    x += Math.max(html.clientWidth, body ? body.clientWidth : 0) - width;
+    x += max(html.clientWidth, body ? body.clientWidth : 0) - width;
   }
 
   return {
@@ -732,12 +828,14 @@ reference element's position.
 */
 
 function listScrollParents(element, list) {
+  var _element$ownerDocumen;
+
   if (list === void 0) {
     list = [];
   }
 
   var scrollParent = getScrollParent(element);
-  var isBody = scrollParent === element.ownerDocument.body;
+  var isBody = scrollParent === ((_element$ownerDocumen = element.ownerDocument) == null ? void 0 : _element$ownerDocumen.body);
   var win = getWindow(scrollParent);
   var target = isBody ? [win].concat(win.visualViewport || [], isScrollParent(scrollParent) ? scrollParent : []) : scrollParent;
   var updatedList = list.concat(target);
@@ -746,7 +844,7 @@ function listScrollParents(element, list) {
 }
 
 function rectToClientRect(rect) {
-  return Object.assign(Object.assign({}, rect), {}, {
+  return Object.assign({}, rect, {
     left: rect.x,
     top: rect.y,
     right: rect.x + rect.width,
@@ -754,8 +852,8 @@ function rectToClientRect(rect) {
   });
 }
 
-function getInnerBoundingClientRect(element) {
-  var rect = getBoundingClientRect(element);
+function getInnerBoundingClientRect(element, strategy) {
+  var rect = getBoundingClientRect(element, false, strategy === 'fixed');
   rect.top = rect.top + element.clientTop;
   rect.left = rect.left + element.clientLeft;
   rect.bottom = rect.top + element.clientHeight;
@@ -767,8 +865,8 @@ function getInnerBoundingClientRect(element) {
   return rect;
 }
 
-function getClientRectFromMixedType(element, clippingParent) {
-  return clippingParent === viewport ? rectToClientRect(getViewportRect(element)) : isHTMLElement(clippingParent) ? getInnerBoundingClientRect(clippingParent) : rectToClientRect(getDocumentRect(getDocumentElement(element)));
+function getClientRectFromMixedType(element, clippingParent, strategy) {
+  return clippingParent === viewport ? rectToClientRect(getViewportRect(element, strategy)) : isElement$1(clippingParent) ? getInnerBoundingClientRect(clippingParent, strategy) : rectToClientRect(getDocumentRect(getDocumentElement(element)));
 } // A "clipping parent" is an overflowable container with the characteristic of
 // clipping (or hiding) overflowing elements with a position different from
 // `initial`
@@ -779,30 +877,30 @@ function getClippingParents(element) {
   var canEscapeClipping = ['absolute', 'fixed'].indexOf(getComputedStyle(element).position) >= 0;
   var clipperElement = canEscapeClipping && isHTMLElement(element) ? getOffsetParent(element) : element;
 
-  if (!isElement(clipperElement)) {
+  if (!isElement$1(clipperElement)) {
     return [];
   } // $FlowFixMe[incompatible-return]: https://github.com/facebook/flow/issues/1414
 
 
   return clippingParents.filter(function (clippingParent) {
-    return isElement(clippingParent) && contains(clippingParent, clipperElement) && getNodeName(clippingParent) !== 'body';
+    return isElement$1(clippingParent) && contains(clippingParent, clipperElement) && getNodeName(clippingParent) !== 'body';
   });
 } // Gets the maximum area that the element is visible in due to any number of
 // clipping parents
 
 
-function getClippingRect(element, boundary, rootBoundary) {
+function getClippingRect(element, boundary, rootBoundary, strategy) {
   var mainClippingParents = boundary === 'clippingParents' ? getClippingParents(element) : [].concat(boundary);
   var clippingParents = [].concat(mainClippingParents, [rootBoundary]);
   var firstClippingParent = clippingParents[0];
   var clippingRect = clippingParents.reduce(function (accRect, clippingParent) {
-    var rect = getClientRectFromMixedType(element, clippingParent);
-    accRect.top = Math.max(rect.top, accRect.top);
-    accRect.right = Math.min(rect.right, accRect.right);
-    accRect.bottom = Math.min(rect.bottom, accRect.bottom);
-    accRect.left = Math.max(rect.left, accRect.left);
+    var rect = getClientRectFromMixedType(element, clippingParent, strategy);
+    accRect.top = max(rect.top, accRect.top);
+    accRect.right = min(rect.right, accRect.right);
+    accRect.bottom = min(rect.bottom, accRect.bottom);
+    accRect.left = max(rect.left, accRect.left);
     return accRect;
-  }, getClientRectFromMixedType(element, firstClippingParent));
+  }, getClientRectFromMixedType(element, firstClippingParent, strategy));
   clippingRect.width = clippingRect.right - clippingRect.left;
   clippingRect.height = clippingRect.bottom - clippingRect.top;
   clippingRect.x = clippingRect.left;
@@ -810,15 +908,11 @@ function getClippingRect(element, boundary, rootBoundary) {
   return clippingRect;
 }
 
-function getVariation(placement) {
-  return placement.split('-')[1];
-}
-
 function computeOffsets(_ref) {
   var reference = _ref.reference,
       element = _ref.element,
       placement = _ref.placement;
-  var basePlacement = placement ? getBasePlacement(placement) : null;
+  var basePlacement = placement ? getBasePlacement$1(placement) : null;
   var variation = placement ? getVariation(placement) : null;
   var commonX = reference.x + reference.width / 2 - element.width / 2;
   var commonY = reference.y + reference.height / 2 - element.height / 2;
@@ -887,6 +981,8 @@ function detectOverflow(state, options) {
   var _options = options,
       _options$placement = _options.placement,
       placement = _options$placement === void 0 ? state.placement : _options$placement,
+      _options$strategy = _options.strategy,
+      strategy = _options$strategy === void 0 ? state.strategy : _options$strategy,
       _options$boundary = _options.boundary,
       boundary = _options$boundary === void 0 ? clippingParents : _options$boundary,
       _options$rootBoundary = _options.rootBoundary,
@@ -899,18 +995,17 @@ function detectOverflow(state, options) {
       padding = _options$padding === void 0 ? 0 : _options$padding;
   var paddingObject = mergePaddingObject(typeof padding !== 'number' ? padding : expandToHashMap(padding, basePlacements));
   var altContext = elementContext === popper ? reference : popper;
-  var referenceElement = state.elements.reference;
   var popperRect = state.rects.popper;
   var element = state.elements[altBoundary ? altContext : elementContext];
-  var clippingClientRect = getClippingRect(isElement(element) ? element : element.contextElement || getDocumentElement(state.elements.popper), boundary, rootBoundary);
-  var referenceClientRect = getBoundingClientRect(referenceElement);
+  var clippingClientRect = getClippingRect(isElement$1(element) ? element : element.contextElement || getDocumentElement(state.elements.popper), boundary, rootBoundary, strategy);
+  var referenceClientRect = getBoundingClientRect(state.elements.reference);
   var popperOffsets = computeOffsets({
     reference: referenceClientRect,
     element: popperRect,
     strategy: 'absolute',
     placement: placement
   });
-  var popperClientRect = rectToClientRect(Object.assign(Object.assign({}, popperRect), popperOffsets));
+  var popperClientRect = rectToClientRect(Object.assign({}, popperRect, popperOffsets));
   var elementClientRect = elementContext === popper ? popperClientRect : referenceClientRect; // positive = overflowing the clipping rect
   // 0 or negative = within the clipping rect
 
@@ -934,9 +1029,6 @@ function detectOverflow(state, options) {
   return overflowOffsets;
 }
 
-/*:: type OverflowsMap = { [ComputedPlacement]: number }; */
-
-/*;; type OverflowsMap = { [key in ComputedPlacement]: number }; */
 function computeAutoPlacement(state, options) {
   if (options === void 0) {
     options = {};
@@ -973,7 +1065,7 @@ function computeAutoPlacement(state, options) {
       boundary: boundary,
       rootBoundary: rootBoundary,
       padding: padding
-    })[getBasePlacement(placement)];
+    })[getBasePlacement$1(placement)];
     return acc;
   }, {});
   return Object.keys(overflows).sort(function (a, b) {
@@ -982,7 +1074,7 @@ function computeAutoPlacement(state, options) {
 }
 
 function getExpandedFallbackPlacements(placement) {
-  if (getBasePlacement(placement) === auto) {
+  if (getBasePlacement$1(placement) === auto) {
     return [];
   }
 
@@ -1012,11 +1104,11 @@ function flip(_ref) {
       flipVariations = _options$flipVariatio === void 0 ? true : _options$flipVariatio,
       allowedAutoPlacements = options.allowedAutoPlacements;
   var preferredPlacement = state.options.placement;
-  var basePlacement = getBasePlacement(preferredPlacement);
+  var basePlacement = getBasePlacement$1(preferredPlacement);
   var isBasePlacement = basePlacement === preferredPlacement;
   var fallbackPlacements = specifiedFallbackPlacements || (isBasePlacement || !flipVariations ? [getOppositePlacement(preferredPlacement)] : getExpandedFallbackPlacements(preferredPlacement));
   var placements = [preferredPlacement].concat(fallbackPlacements).reduce(function (acc, placement) {
-    return acc.concat(getBasePlacement(placement) === auto ? computeAutoPlacement(state, {
+    return acc.concat(getBasePlacement$1(placement) === auto ? computeAutoPlacement(state, {
       placement: placement,
       boundary: boundary,
       rootBoundary: rootBoundary,
@@ -1034,7 +1126,7 @@ function flip(_ref) {
   for (var i = 0; i < placements.length; i++) {
     var placement = placements[i];
 
-    var _basePlacement = getBasePlacement(placement);
+    var _basePlacement = getBasePlacement$1(placement);
 
     var isStartVariation = getVariation(placement) === start;
     var isVertical = [top, bottom].indexOf(_basePlacement) >= 0;
@@ -1165,7 +1257,7 @@ function hide(_ref) {
     isReferenceHidden: isReferenceHidden,
     hasPopperEscaped: hasPopperEscaped
   };
-  state.attributes.popper = Object.assign(Object.assign({}, state.attributes.popper), {}, {
+  state.attributes.popper = Object.assign({}, state.attributes.popper, {
     'data-popper-reference-hidden': isReferenceHidden,
     'data-popper-escaped': hasPopperEscaped
   });
@@ -1181,10 +1273,10 @@ var hide$1 = {
 };
 
 function distanceAndSkiddingToXY(placement, rects, offset) {
-  var basePlacement = getBasePlacement(placement);
+  var basePlacement = getBasePlacement$1(placement);
   var invertDistance = [left, top].indexOf(basePlacement) >= 0 ? -1 : 1;
 
-  var _ref = typeof offset === 'function' ? offset(Object.assign(Object.assign({}, rects), {}, {
+  var _ref = typeof offset === 'function' ? offset(Object.assign({}, rects, {
     placement: placement
   })) : offset,
       skidding = _ref[0],
@@ -1282,7 +1374,7 @@ function preventOverflow(_ref) {
     padding: padding,
     altBoundary: altBoundary
   });
-  var basePlacement = getBasePlacement(state.placement);
+  var basePlacement = getBasePlacement$1(state.placement);
   var variation = getVariation(state.placement);
   var isBasePlacement = !variation;
   var mainAxis = getMainAxisFromPlacement(basePlacement);
@@ -1290,9 +1382,17 @@ function preventOverflow(_ref) {
   var popperOffsets = state.modifiersData.popperOffsets;
   var referenceRect = state.rects.reference;
   var popperRect = state.rects.popper;
-  var tetherOffsetValue = typeof tetherOffset === 'function' ? tetherOffset(Object.assign(Object.assign({}, state.rects), {}, {
+  var tetherOffsetValue = typeof tetherOffset === 'function' ? tetherOffset(Object.assign({}, state.rects, {
     placement: state.placement
   })) : tetherOffset;
+  var normalizedTetherOffsetValue = typeof tetherOffsetValue === 'number' ? {
+    mainAxis: tetherOffsetValue,
+    altAxis: tetherOffsetValue
+  } : Object.assign({
+    mainAxis: 0,
+    altAxis: 0
+  }, tetherOffsetValue);
+  var offsetModifierState = state.modifiersData.offset ? state.modifiersData.offset[state.placement] : null;
   var data = {
     x: 0,
     y: 0
@@ -1303,12 +1403,14 @@ function preventOverflow(_ref) {
   }
 
   if (checkMainAxis) {
+    var _offsetModifierState$;
+
     var mainSide = mainAxis === 'y' ? top : left;
     var altSide = mainAxis === 'y' ? bottom : right;
     var len = mainAxis === 'y' ? 'height' : 'width';
     var offset = popperOffsets[mainAxis];
-    var min = popperOffsets[mainAxis] + overflow[mainSide];
-    var max = popperOffsets[mainAxis] - overflow[altSide];
+    var min$1 = offset + overflow[mainSide];
+    var max$1 = offset - overflow[altSide];
     var additive = tether ? -popperRect[len] / 2 : 0;
     var minLen = variation === start ? referenceRect[len] : popperRect[len];
     var maxLen = variation === start ? -popperRect[len] : -referenceRect[len]; // We need to include the arrow in the calculation so the arrow doesn't go
@@ -1328,30 +1430,42 @@ function preventOverflow(_ref) {
     // width or height)
 
     var arrowLen = within(0, referenceRect[len], arrowRect[len]);
-    var minOffset = isBasePlacement ? referenceRect[len] / 2 - additive - arrowLen - arrowPaddingMin - tetherOffsetValue : minLen - arrowLen - arrowPaddingMin - tetherOffsetValue;
-    var maxOffset = isBasePlacement ? -referenceRect[len] / 2 + additive + arrowLen + arrowPaddingMax + tetherOffsetValue : maxLen + arrowLen + arrowPaddingMax + tetherOffsetValue;
+    var minOffset = isBasePlacement ? referenceRect[len] / 2 - additive - arrowLen - arrowPaddingMin - normalizedTetherOffsetValue.mainAxis : minLen - arrowLen - arrowPaddingMin - normalizedTetherOffsetValue.mainAxis;
+    var maxOffset = isBasePlacement ? -referenceRect[len] / 2 + additive + arrowLen + arrowPaddingMax + normalizedTetherOffsetValue.mainAxis : maxLen + arrowLen + arrowPaddingMax + normalizedTetherOffsetValue.mainAxis;
     var arrowOffsetParent = state.elements.arrow && getOffsetParent(state.elements.arrow);
     var clientOffset = arrowOffsetParent ? mainAxis === 'y' ? arrowOffsetParent.clientTop || 0 : arrowOffsetParent.clientLeft || 0 : 0;
-    var offsetModifierValue = state.modifiersData.offset ? state.modifiersData.offset[state.placement][mainAxis] : 0;
-    var tetherMin = popperOffsets[mainAxis] + minOffset - offsetModifierValue - clientOffset;
-    var tetherMax = popperOffsets[mainAxis] + maxOffset - offsetModifierValue;
-    var preventedOffset = within(tether ? Math.min(min, tetherMin) : min, offset, tether ? Math.max(max, tetherMax) : max);
+    var offsetModifierValue = (_offsetModifierState$ = offsetModifierState == null ? void 0 : offsetModifierState[mainAxis]) != null ? _offsetModifierState$ : 0;
+    var tetherMin = offset + minOffset - offsetModifierValue - clientOffset;
+    var tetherMax = offset + maxOffset - offsetModifierValue;
+    var preventedOffset = within(tether ? min(min$1, tetherMin) : min$1, offset, tether ? max(max$1, tetherMax) : max$1);
     popperOffsets[mainAxis] = preventedOffset;
     data[mainAxis] = preventedOffset - offset;
   }
 
   if (checkAltAxis) {
+    var _offsetModifierState$2;
+
     var _mainSide = mainAxis === 'x' ? top : left;
 
     var _altSide = mainAxis === 'x' ? bottom : right;
 
     var _offset = popperOffsets[altAxis];
 
+    var _len = altAxis === 'y' ? 'height' : 'width';
+
     var _min = _offset + overflow[_mainSide];
 
     var _max = _offset - overflow[_altSide];
 
-    var _preventedOffset = within(_min, _offset, _max);
+    var isOriginSide = [top, left].indexOf(basePlacement) !== -1;
+
+    var _offsetModifierValue = (_offsetModifierState$2 = offsetModifierState == null ? void 0 : offsetModifierState[altAxis]) != null ? _offsetModifierState$2 : 0;
+
+    var _tetherMin = isOriginSide ? _min : _offset - referenceRect[_len] - popperRect[_len] - _offsetModifierValue + normalizedTetherOffsetValue.altAxis;
+
+    var _tetherMax = isOriginSide ? _offset + referenceRect[_len] + popperRect[_len] - _offsetModifierValue - normalizedTetherOffsetValue.altAxis : _max;
+
+    var _preventedOffset = tether && isOriginSide ? withinMaxClamp(_tetherMin, _offset, _tetherMax) : within(tether ? _tetherMin : _min, _offset, tether ? _tetherMax : _max);
 
     popperOffsets[altAxis] = _preventedOffset;
     data[altAxis] = _preventedOffset - _offset;
@@ -1384,16 +1498,24 @@ function getNodeScroll(node) {
   }
 }
 
+function isElementScaled(element) {
+  var rect = element.getBoundingClientRect();
+  var scaleX = round(rect.width) / element.offsetWidth || 1;
+  var scaleY = round(rect.height) / element.offsetHeight || 1;
+  return scaleX !== 1 || scaleY !== 1;
+} // Returns the composite rect of an element relative to its offsetParent.
 // Composite means it takes into account transforms as well as layout.
+
 
 function getCompositeRect(elementOrVirtualElement, offsetParent, isFixed) {
   if (isFixed === void 0) {
     isFixed = false;
   }
 
-  var documentElement = getDocumentElement(offsetParent);
-  var rect = getBoundingClientRect(elementOrVirtualElement);
   var isOffsetParentAnElement = isHTMLElement(offsetParent);
+  var offsetParentIsScaled = isHTMLElement(offsetParent) && isElementScaled(offsetParent);
+  var documentElement = getDocumentElement(offsetParent);
+  var rect = getBoundingClientRect(elementOrVirtualElement, offsetParentIsScaled, isFixed);
   var scroll = {
     scrollLeft: 0,
     scrollTop: 0
@@ -1410,7 +1532,7 @@ function getCompositeRect(elementOrVirtualElement, offsetParent, isFixed) {
     }
 
     if (isHTMLElement(offsetParent)) {
-      offsets = getBoundingClientRect(offsetParent);
+      offsets = getBoundingClientRect(offsetParent, true);
       offsets.x += offsetParent.clientLeft;
       offsets.y += offsetParent.clientTop;
     } else if (documentElement) {
@@ -1469,7 +1591,7 @@ function orderModifiers(modifiers) {
   }, []);
 }
 
-function debounce(fn) {
+function debounce$1(fn) {
   var pending;
   return function () {
     if (!pending) {
@@ -1500,7 +1622,10 @@ var MISSING_DEPENDENCY_ERROR = 'Popper: modifier "%s" requires "%s", but "%s" mo
 var VALID_PROPERTIES = ['name', 'enabled', 'phase', 'fn', 'effect', 'requires', 'options'];
 function validateModifiers(modifiers) {
   modifiers.forEach(function (modifier) {
-    Object.keys(modifier).forEach(function (key) {
+    [].concat(Object.keys(modifier), VALID_PROPERTIES) // IE11-compatible replacement for `new Set(iterable)`
+    .filter(function (value, index, self) {
+      return self.indexOf(value) === index;
+    }).forEach(function (key) {
       switch (key) {
         case 'name':
           if (typeof modifier.name !== 'string') {
@@ -1513,6 +1638,8 @@ function validateModifiers(modifiers) {
           if (typeof modifier.enabled !== 'boolean') {
             console.error(format(INVALID_MODIFIER_ERROR, modifier.name, '"enabled"', '"boolean"', "\"" + String(modifier.enabled) + "\""));
           }
+
+          break;
 
         case 'phase':
           if (modifierPhases.indexOf(modifier.phase) < 0) {
@@ -1529,14 +1656,14 @@ function validateModifiers(modifiers) {
           break;
 
         case 'effect':
-          if (typeof modifier.effect !== 'function') {
+          if (modifier.effect != null && typeof modifier.effect !== 'function') {
             console.error(format(INVALID_MODIFIER_ERROR, modifier.name, '"effect"', '"function"', "\"" + String(modifier.fn) + "\""));
           }
 
           break;
 
         case 'requires':
-          if (!Array.isArray(modifier.requires)) {
+          if (modifier.requires != null && !Array.isArray(modifier.requires)) {
             console.error(format(INVALID_MODIFIER_ERROR, modifier.name, '"requires"', '"array"', "\"" + String(modifier.requires) + "\""));
           }
 
@@ -1585,9 +1712,9 @@ function uniqueBy(arr, fn) {
 function mergeByName(modifiers) {
   var merged = modifiers.reduce(function (merged, current) {
     var existing = merged[current.name];
-    merged[current.name] = existing ? Object.assign(Object.assign(Object.assign({}, existing), current), {}, {
-      options: Object.assign(Object.assign({}, existing.options), current.options),
-      data: Object.assign(Object.assign({}, existing.data), current.data)
+    merged[current.name] = existing ? Object.assign({}, existing, current, {
+      options: Object.assign({}, existing.options, current.options),
+      data: Object.assign({}, existing.data, current.data)
     }) : current;
     return merged;
   }, {}); // IE11 does not support Object.values
@@ -1633,7 +1760,7 @@ function popperGenerator(generatorOptions) {
     var state = {
       placement: 'bottom',
       orderedModifiers: [],
-      options: Object.assign(Object.assign({}, DEFAULT_OPTIONS), defaultOptions),
+      options: Object.assign({}, DEFAULT_OPTIONS, defaultOptions),
       modifiersData: {},
       elements: {
         reference: reference,
@@ -1646,11 +1773,12 @@ function popperGenerator(generatorOptions) {
     var isDestroyed = false;
     var instance = {
       state: state,
-      setOptions: function setOptions(options) {
+      setOptions: function setOptions(setOptionsAction) {
+        var options = typeof setOptionsAction === 'function' ? setOptionsAction(state.options) : setOptionsAction;
         cleanupModifierEffects();
-        state.options = Object.assign(Object.assign(Object.assign({}, defaultOptions), state.options), options);
+        state.options = Object.assign({}, defaultOptions, state.options, options);
         state.scrollParents = {
-          reference: isElement(reference) ? listScrollParents(reference) : reference.contextElement ? listScrollParents(reference.contextElement) : [],
+          reference: isElement$1(reference) ? listScrollParents(reference) : reference.contextElement ? listScrollParents(reference.contextElement) : [],
           popper: listScrollParents(popper)
         }; // Orders the modifiers based on their dependencies and `phase`
         // properties
@@ -1669,7 +1797,7 @@ function popperGenerator(generatorOptions) {
           });
           validateModifiers(modifiers);
 
-          if (getBasePlacement(state.options.placement) === auto) {
+          if (getBasePlacement$1(state.options.placement) === auto) {
             var flipModifier = state.orderedModifiers.find(function (_ref2) {
               var name = _ref2.name;
               return name === 'flip';
@@ -1776,7 +1904,7 @@ function popperGenerator(generatorOptions) {
       },
       // Async and optimistically optimized update – it will not be executed if
       // not necessary (debounced to run at most once-per-tick)
-      update: debounce(function () {
+      update: debounce$1(function () {
         return new Promise(function (resolve) {
           instance.forceUpdate();
           resolve(state);
@@ -1845,8 +1973,8 @@ var createPopper = /*#__PURE__*/popperGenerator({
 }); // eslint-disable-next-line import/no-unused-modules
 
 /**!
-* tippy.js v6.2.7
-* (c) 2017-2020 atomiks
+* tippy.js v6.3.7
+* (c) 2017-2021 atomiks
 * MIT License
 */
 
@@ -1859,6 +1987,9 @@ var SVG_ARROW_CLASS = "tippy-svg-arrow";
 var TOUCH_OPTIONS = {
   passive: true,
   capture: true
+};
+var TIPPY_DEFAULT_APPEND_TO = function TIPPY_DEFAULT_APPEND_TO() {
+  return document.body;
 };
 
 function hasOwnProperty(obj, key) {
@@ -1879,7 +2010,7 @@ function isType(value, type) {
 function invokeWithArgsOrReturn(value, args) {
   return typeof value === 'function' ? value.apply(void 0, args) : value;
 }
-function debounce$1(fn, ms) {
+function debounce(fn, ms) {
   // Avoid wrapping in `setTimeout` if ms is 0 anyway
   if (ms === 0) {
     return fn;
@@ -1916,7 +2047,7 @@ function unique(arr) {
     return arr.indexOf(item) === index;
   });
 }
-function getBasePlacement$1(placement) {
+function getBasePlacement(placement) {
   return placement.split('-')[0];
 }
 function arrayFrom(value) {
@@ -1935,7 +2066,7 @@ function removeUndefinedProps(obj) {
 function div() {
   return document.createElement('div');
 }
-function isElement$1(value) {
+function isElement(value) {
   return ['Element', 'Fragment'].some(function (type) {
     return isType(value, type);
   });
@@ -1950,7 +2081,7 @@ function isReferenceElement(value) {
   return !!(value && value._tippy && value._tippy.reference === value);
 }
 function getArrayOfElements(value) {
-  if (isElement$1(value)) {
+  if (isElement(value)) {
     return [value];
   }
 
@@ -1979,10 +2110,13 @@ function setVisibilityState(els, state) {
   });
 }
 function getOwnerDocument(elementOrElements) {
-  var _normalizeToArray = normalizeToArray(elementOrElements),
-      element = _normalizeToArray[0];
+  var _element$ownerDocumen;
 
-  return element ? element.ownerDocument || document : document;
+  var _normalizeToArray = normalizeToArray(elementOrElements),
+      element = _normalizeToArray[0]; // Elements created via a <template> have an ownerDocument with no reference to the body
+
+
+  return element != null && (_element$ownerDocumen = element.ownerDocument) != null && _element$ownerDocumen.body ? element.ownerDocument : document;
 }
 function isCursorOutsideInteractiveBorder(popperTreeData, event) {
   var clientX = event.clientX,
@@ -1992,7 +2126,7 @@ function isCursorOutsideInteractiveBorder(popperTreeData, event) {
         popperState = _ref.popperState,
         props = _ref.props;
     var interactiveBorder = props.interactiveBorder;
-    var basePlacement = getBasePlacement$1(popperState.placement);
+    var basePlacement = getBasePlacement(popperState.placement);
     var offsetData = popperState.modifiersData.offset;
 
     if (!offsetData) {
@@ -2017,6 +2151,26 @@ function updateTransitionEndListener(box, action, listener) {
   ['transitionend', 'webkitTransitionEnd'].forEach(function (event) {
     box[method](event, listener);
   });
+}
+/**
+ * Compared to xxx.contains, this function works for dom structures with shadow
+ * dom
+ */
+
+function actualContains(parent, child) {
+  var target = child;
+
+  while (target) {
+    var _target$getRootNode;
+
+    if (parent.contains(target)) {
+      return true;
+    }
+
+    target = target.getRootNode == null ? void 0 : (_target$getRootNode = target.getRootNode()) == null ? void 0 : _target$getRootNode.host;
+  }
+
+  return false;
 }
 
 var currentInput = {
@@ -2081,8 +2235,8 @@ function bindGlobalEventListeners() {
 }
 
 var isBrowser = typeof window !== 'undefined' && typeof document !== 'undefined';
-var ua = isBrowser ? navigator.userAgent : '';
-var isIE = /MSIE |Trident\//.test(ua);
+var isIE11 = isBrowser ? // @ts-ignore
+!!window.msCrypto : false;
 
 function createMemoryLeakWarning(method) {
   var txt = method === 'destroy' ? 'n already-' : ' ';
@@ -2157,9 +2311,7 @@ var renderProps = {
   zIndex: 9999
 };
 var defaultProps = Object.assign({
-  appendTo: function appendTo() {
-    return document.body;
-  },
+  appendTo: TIPPY_DEFAULT_APPEND_TO,
   aria: {
     content: 'auto',
     expanded: 'auto'
@@ -2194,7 +2346,7 @@ var defaultProps = Object.assign({
   touch: true,
   trigger: 'mouseenter focus',
   triggerTarget: null
-}, pluginProps, {}, renderProps);
+}, pluginProps, renderProps);
 var defaultKeys = Object.keys(defaultProps);
 var setDefaultProps = function setDefaultProps(partialProps) {
   /* istanbul ignore else */
@@ -2214,12 +2366,14 @@ function getExtendedPassedProps(passedProps) {
         defaultValue = plugin.defaultValue;
 
     if (name) {
-      acc[name] = passedProps[name] !== undefined ? passedProps[name] : defaultValue;
+      var _name;
+
+      acc[name] = passedProps[name] !== undefined ? passedProps[name] : (_name = defaultProps[name]) != null ? _name : defaultValue;
     }
 
     return acc;
   }, {});
-  return Object.assign({}, passedProps, {}, pluginProps);
+  return Object.assign({}, passedProps, pluginProps);
 }
 function getDataAttributeProps(reference, plugins) {
   var propKeys = plugins ? Object.keys(getExtendedPassedProps(Object.assign({}, defaultProps, {
@@ -2250,7 +2404,7 @@ function evaluateProps(reference, props) {
   var out = Object.assign({}, props, {
     content: invokeWithArgsOrReturn(props.content, [reference])
   }, props.ignoreAttributes ? {} : getDataAttributeProps(reference, props.plugins));
-  out.aria = Object.assign({}, defaultProps.aria, {}, out.aria);
+  out.aria = Object.assign({}, defaultProps.aria, out.aria);
   out.aria = {
     expanded: out.aria.expanded === 'auto' ? props.interactive : out.aria.expanded,
     content: out.aria.content === 'auto' ? props.interactive ? null : 'describedby' : out.aria.content
@@ -2297,7 +2451,7 @@ function createArrowElement(value) {
   } else {
     arrow.className = SVG_ARROW_CLASS;
 
-    if (isElement$1(value)) {
+    if (isElement(value)) {
       arrow.appendChild(value);
     } else {
       dangerouslySetInnerHTML(arrow, value);
@@ -2308,7 +2462,7 @@ function createArrowElement(value) {
 }
 
 function setContent(content, props) {
-  if (isElement$1(props.content)) {
+  if (isElement(props.content)) {
     dangerouslySetInnerHTML(content, '');
     content.appendChild(props.content);
   } else if (typeof props.content !== 'function') {
@@ -2411,7 +2565,7 @@ var mouseMoveListeners = []; // Used by `hideAll()`
 
 var mountedInstances = [];
 function createTippy(reference, passedProps) {
-  var props = evaluateProps(reference, Object.assign({}, defaultProps, {}, getExtendedPassedProps(removeUndefinedProps(passedProps)))); // ===========================================================================
+  var props = evaluateProps(reference, Object.assign({}, defaultProps, getExtendedPassedProps(removeUndefinedProps(passedProps)))); // ===========================================================================
   // 🔒 Private members
   // ===========================================================================
 
@@ -2426,7 +2580,7 @@ function createTippy(reference, passedProps) {
   var currentTransitionEndListener;
   var onFirstUpdate;
   var listeners = [];
-  var debouncedOnMouseMove = debounce$1(onMouseMove, props.interactiveDebounce);
+  var debouncedOnMouseMove = debounce(onMouseMove, props.interactiveDebounce);
   var currentTarget; // ===========================================================================
   // 🔑 Public members
   // ===========================================================================
@@ -2511,10 +2665,9 @@ function createTippy(reference, passedProps) {
       instance.clearDelayTimeouts();
     }
   });
-  popper.addEventListener('mouseleave', function (event) {
+  popper.addEventListener('mouseleave', function () {
     if (instance.props.interactive && instance.props.trigger.indexOf('mouseenter') >= 0) {
       getDocument().addEventListener('mousemove', debouncedOnMouseMove);
-      debouncedOnMouseMove(event);
     }
   });
   return instance; // ===========================================================================
@@ -2534,7 +2687,7 @@ function createTippy(reference, passedProps) {
     var _instance$props$rende;
 
     // @ts-ignore
-    return !!((_instance$props$rende = instance.props.render) == null ? void 0 : _instance$props$rende.$$tippy);
+    return !!((_instance$props$rende = instance.props.render) != null && _instance$props$rende.$$tippy);
   }
 
   function getCurrentTarget() {
@@ -2561,8 +2714,12 @@ function createTippy(reference, passedProps) {
     return getValueAtIndexOrReturn(instance.props.delay, isShow ? 0 : 1, defaultProps.delay);
   }
 
-  function handleStyles() {
-    popper.style.pointerEvents = instance.props.interactive && instance.state.isVisible ? '' : 'none';
+  function handleStyles(fromHide) {
+    if (fromHide === void 0) {
+      fromHide = false;
+    }
+
+    popper.style.pointerEvents = instance.props.interactive && !fromHide ? '' : 'none';
     popper.style.zIndex = "" + instance.props.zIndex;
   }
 
@@ -2573,7 +2730,7 @@ function createTippy(reference, passedProps) {
 
     pluginsHooks.forEach(function (pluginHooks) {
       if (pluginHooks[hook]) {
-        pluginHooks[hook].apply(void 0, args);
+        pluginHooks[hook].apply(pluginHooks, args);
       }
     });
 
@@ -2639,15 +2796,18 @@ function createTippy(reference, passedProps) {
       if (didTouchMove || event.type === 'mousedown') {
         return;
       }
-    } // Clicked on interactive popper
+    }
 
+    var actualTarget = event.composedPath && event.composedPath()[0] || event.target; // Clicked on interactive popper
 
-    if (instance.props.interactive && popper.contains(event.target)) {
+    if (instance.props.interactive && actualContains(popper, actualTarget)) {
       return;
     } // Clicked on the event listeners target
 
 
-    if (getCurrentTarget().contains(event.target)) {
+    if (normalizeToArray(instance.props.triggerTarget || reference).some(function (el) {
+      return actualContains(el, actualTarget);
+    })) {
       if (currentInput.isTouch) {
         return;
       }
@@ -2775,7 +2935,7 @@ function createTippy(reference, passedProps) {
           break;
 
         case 'focus':
-          on(isIE ? 'focusout' : 'blur', onBlurOrFocusOut);
+          on(isIE11 ? 'focusout' : 'blur', onBlurOrFocusOut);
           break;
 
         case 'focusin':
@@ -3001,7 +3161,7 @@ function createTippy(reference, passedProps) {
 
     var node = getCurrentTarget();
 
-    if (instance.props.interactive && appendTo === defaultProps.appendTo || appendTo === 'parent') {
+    if (instance.props.interactive && appendTo === TIPPY_DEFAULT_APPEND_TO || appendTo === 'parent') {
       parentNode = node.parentNode;
     } else {
       parentNode = invokeWithArgsOrReturn(appendTo, [node]);
@@ -3013,6 +3173,7 @@ function createTippy(reference, passedProps) {
       parentNode.appendChild(popper);
     }
 
+    instance.state.isMounted = true;
     createPopperInstance();
     /* istanbul ignore else */
 
@@ -3120,7 +3281,7 @@ function createTippy(reference, passedProps) {
     invokeHook('onBeforeUpdate', [instance, partialProps]);
     removeListeners();
     var prevProps = instance.props;
-    var nextProps = evaluateProps(reference, Object.assign({}, instance.props, {}, partialProps, {
+    var nextProps = evaluateProps(reference, Object.assign({}, prevProps, removeUndefinedProps(partialProps), {
       ignoreAttributes: true
     }));
     instance.props = nextProps;
@@ -3128,7 +3289,7 @@ function createTippy(reference, passedProps) {
 
     if (prevProps.interactiveDebounce !== nextProps.interactiveDebounce) {
       cleanupInteractiveMouseListeners();
-      debouncedOnMouseMove = debounce$1(onMouseMove, nextProps.interactiveDebounce);
+      debouncedOnMouseMove = debounce(onMouseMove, nextProps.interactiveDebounce);
     } // Ensure stale aria-expanded attributes are removed
 
 
@@ -3223,6 +3384,8 @@ function createTippy(reference, passedProps) {
     }
 
     onFirstUpdate = function onFirstUpdate() {
+      var _instance$popperInsta2;
+
       if (!instance.state.isVisible || ignoreOnFirstUpdate) {
         return;
       }
@@ -3243,8 +3406,10 @@ function createTippy(reference, passedProps) {
 
       handleAriaContentAttribute();
       handleAriaExpandedAttribute();
-      pushIfUnique(mountedInstances, instance);
-      instance.state.isMounted = true;
+      pushIfUnique(mountedInstances, instance); // certain modifiers (e.g. `maxSize`) require a second update after the
+      // popper has been positioned for the first time
+
+      (_instance$popperInsta2 = instance.popperInstance) == null ? void 0 : _instance$popperInsta2.forceUpdate();
       invokeHook('onMount', [instance]);
 
       if (instance.props.animation && getIsDefaultRenderFn()) {
@@ -3291,7 +3456,7 @@ function createTippy(reference, passedProps) {
 
     cleanupInteractiveMouseListeners();
     removeDocumentPress();
-    handleStyles();
+    handleStyles(true);
 
     if (getIsDefaultRenderFn()) {
       var _getDefaultTemplateCh4 = getDefaultTemplateChildren(),
@@ -3400,7 +3565,7 @@ function tippy(targets, optionalProps) {
   /* istanbul ignore else */
 
   if (process.env.NODE_ENV !== "production") {
-    var isSingleContentElement = isElement$1(passedProps.content);
+    var isSingleContentElement = isElement(passedProps.content);
     var isMoreThanOneReferenceElement = elements.length > 1;
     warnWhen(isSingleContentElement && isMoreThanOneReferenceElement, ['tippy() was passed an Element as the `content` prop, but more than', 'one tippy instance was created by this invocation. This means the', 'content element will only be appended to the last tippy instance.', '\n\n', 'Instead, pass the .innerHTML of the element, or use a function that', 'returns a cloned version of the element instead.', '\n\n', '1) content: element.innerHTML\n', '2) content: () => element.cloneNode(true)'].join(' '));
   }
@@ -3414,7 +3579,7 @@ function tippy(targets, optionalProps) {
 
     return acc;
   }, []);
-  return isElement$1(targets) ? instances[0] : instances;
+  return isElement(targets) ? instances[0] : instances;
 }
 
 tippy.defaultProps = defaultProps;
@@ -3448,7 +3613,39 @@ var hideAll = function hideAll(_temp) {
   });
 };
 
+// every time the popper is destroyed (i.e. a new target), removing the styles
+// and causing transitions to break for singletons when the console is open, but
+// most notably for non-transform styles being used, `gpuAcceleration: false`.
+
+var applyStylesModifier = Object.assign({}, applyStyles$1, {
+  effect: function effect(_ref) {
+    var state = _ref.state;
+    var initialStyles = {
+      popper: {
+        position: state.options.strategy,
+        left: '0',
+        top: '0',
+        margin: '0'
+      },
+      arrow: {
+        position: 'absolute'
+      },
+      reference: {}
+    };
+    Object.assign(state.elements.popper.style, initialStyles.popper);
+    state.styles = initialStyles;
+
+    if (state.elements.arrow) {
+      Object.assign(state.elements.arrow.style, initialStyles.arrow);
+    } // intentionally return no cleanup function
+    // return () => { ... }
+
+  }
+});
+
 var createSingleton = function createSingleton(tippyInstances, optionalProps) {
+  var _optionalProps$popper;
+
   if (optionalProps === void 0) {
     optionalProps = {};
   }
@@ -3460,9 +3657,19 @@ var createSingleton = function createSingleton(tippyInstances, optionalProps) {
 
   var individualInstances = tippyInstances;
   var references = [];
+  var triggerTargets = [];
   var currentTarget;
   var overrides = optionalProps.overrides;
   var interceptSetPropsCleanups = [];
+  var shownOnCreate = false;
+
+  function setTriggerTargets() {
+    triggerTargets = individualInstances.map(function (instance) {
+      return normalizeToArray(instance.props.triggerTarget || instance.reference);
+    }).reduce(function (acc, item) {
+      return acc.concat(item);
+    }, []);
+  }
 
   function setReferences() {
     references = individualInstances.map(function (instance) {
@@ -3496,42 +3703,123 @@ var createSingleton = function createSingleton(tippyInstances, optionalProps) {
         instance.setProps = originalSetProps;
       };
     });
+  } // have to pass singleton, as it maybe undefined on first call
+
+
+  function prepareInstance(singleton, target) {
+    var index = triggerTargets.indexOf(target); // bail-out
+
+    if (target === currentTarget) {
+      return;
+    }
+
+    currentTarget = target;
+    var overrideProps = (overrides || []).concat('content').reduce(function (acc, prop) {
+      acc[prop] = individualInstances[index].props[prop];
+      return acc;
+    }, {});
+    singleton.setProps(Object.assign({}, overrideProps, {
+      getReferenceClientRect: typeof overrideProps.getReferenceClientRect === 'function' ? overrideProps.getReferenceClientRect : function () {
+        var _references$index;
+
+        return (_references$index = references[index]) == null ? void 0 : _references$index.getBoundingClientRect();
+      }
+    }));
   }
 
   enableInstances(false);
   setReferences();
+  setTriggerTargets();
   var plugin = {
     fn: function fn() {
       return {
         onDestroy: function onDestroy() {
           enableInstances(true);
         },
-        onTrigger: function onTrigger(instance, event) {
-          var target = event.currentTarget;
-          var index = references.indexOf(target); // bail-out
-
-          if (target === currentTarget) {
-            return;
+        onHidden: function onHidden() {
+          currentTarget = null;
+        },
+        onClickOutside: function onClickOutside(instance) {
+          if (instance.props.showOnCreate && !shownOnCreate) {
+            shownOnCreate = true;
+            currentTarget = null;
           }
-
-          currentTarget = target;
-          var overrideProps = (overrides || []).concat('content').reduce(function (acc, prop) {
-            acc[prop] = individualInstances[index].props[prop];
-            return acc;
-          }, {});
-          instance.setProps(Object.assign({}, overrideProps, {
-            getReferenceClientRect: typeof overrideProps.getReferenceClientRect === 'function' ? overrideProps.getReferenceClientRect : function () {
-              return target.getBoundingClientRect();
-            }
-          }));
+        },
+        onShow: function onShow(instance) {
+          if (instance.props.showOnCreate && !shownOnCreate) {
+            shownOnCreate = true;
+            prepareInstance(instance, references[0]);
+          }
+        },
+        onTrigger: function onTrigger(instance, event) {
+          prepareInstance(instance, event.currentTarget);
         }
       };
     }
   };
   var singleton = tippy(div(), Object.assign({}, removeProperties(optionalProps, ['overrides']), {
     plugins: [plugin].concat(optionalProps.plugins || []),
-    triggerTarget: references
+    triggerTarget: triggerTargets,
+    popperOptions: Object.assign({}, optionalProps.popperOptions, {
+      modifiers: [].concat(((_optionalProps$popper = optionalProps.popperOptions) == null ? void 0 : _optionalProps$popper.modifiers) || [], [applyStylesModifier])
+    })
   }));
+  var originalShow = singleton.show;
+
+  singleton.show = function (target) {
+    originalShow(); // first time, showOnCreate or programmatic call with no params
+    // default to showing first instance
+
+    if (!currentTarget && target == null) {
+      return prepareInstance(singleton, references[0]);
+    } // triggered from event (do nothing as prepareInstance already called by onTrigger)
+    // programmatic call with no params when already visible (do nothing again)
+
+
+    if (currentTarget && target == null) {
+      return;
+    } // target is index of instance
+
+
+    if (typeof target === 'number') {
+      return references[target] && prepareInstance(singleton, references[target]);
+    } // target is a child tippy instance
+
+
+    if (individualInstances.indexOf(target) >= 0) {
+      var ref = target.reference;
+      return prepareInstance(singleton, ref);
+    } // target is a ReferenceElement
+
+
+    if (references.indexOf(target) >= 0) {
+      return prepareInstance(singleton, target);
+    }
+  };
+
+  singleton.showNext = function () {
+    var first = references[0];
+
+    if (!currentTarget) {
+      return singleton.show(0);
+    }
+
+    var index = references.indexOf(currentTarget);
+    singleton.show(references[index + 1] || first);
+  };
+
+  singleton.showPrevious = function () {
+    var last = references[references.length - 1];
+
+    if (!currentTarget) {
+      return singleton.show(last);
+    }
+
+    var index = references.indexOf(currentTarget);
+    var target = references[index - 1] || last;
+    singleton.show(target);
+  };
+
   var originalSetProps = singleton.setProps;
 
   singleton.setProps = function (props) {
@@ -3547,9 +3835,10 @@ var createSingleton = function createSingleton(tippyInstances, optionalProps) {
     individualInstances = nextInstances;
     enableInstances(false);
     setReferences();
-    interceptSetProps(singleton);
+    setTriggerTargets();
+    interceptSetPropsCleanups = interceptSetProps(singleton);
     singleton.setProps({
-      triggerTarget: references
+      triggerTarget: triggerTargets
     });
   };
 
@@ -3582,7 +3871,9 @@ function delegate(targets, props) {
     trigger: 'manual',
     touch: false
   });
-  var childProps = Object.assign({}, nativeProps, {
+  var childProps = Object.assign({
+    touch: defaultProps.touch
+  }, nativeProps, {
     showOnCreate: true
   });
   var returnValue = tippy(targets, parentProps);
@@ -3640,7 +3931,7 @@ function delegate(targets, props) {
 
   function addEventListeners(instance) {
     var reference = instance.reference;
-    on(reference, 'touchstart', onTrigger);
+    on(reference, 'touchstart', onTrigger, TOUCH_OPTIONS);
     on(reference, 'mouseover', onTrigger);
     on(reference, 'focusin', onTrigger);
     on(reference, 'click', onTrigger);
@@ -3708,7 +3999,7 @@ var animateFill = {
     var _instance$props$rende;
 
     // @ts-ignore
-    if (!((_instance$props$rende = instance.props.render) == null ? void 0 : _instance$props$rende.$$tippy)) {
+    if (!((_instance$props$rende = instance.props.render) != null && _instance$props$rende.$$tippy)) {
       if (process.env.NODE_ENV !== "production") {
         errorWhen(instance.props.animateFill, 'The `animateFill` plugin requires the default render function.');
       }
@@ -3833,6 +4124,7 @@ var followCursor = {
 
       if (isCursorOverReference || !instance.props.interactive) {
         instance.setProps({
+          // @ts-ignore - unneeded DOMRect properties
           getReferenceClientRect: function getReferenceClientRect() {
             var rect = reference.getBoundingClientRect();
             var x = clientX;
@@ -3969,6 +4261,7 @@ var inlinePositioning = {
     var placement;
     var cursorRectIndex = -1;
     var isInternalUpdate = false;
+    var triedPlacements = [];
     var modifier = {
       name: 'tippyInlinePositioning',
       enabled: true,
@@ -3977,8 +4270,14 @@ var inlinePositioning = {
         var state = _ref2.state;
 
         if (isEnabled()) {
-          if (placement !== state.placement) {
+          if (triedPlacements.indexOf(state.placement) !== -1) {
+            triedPlacements = [];
+          }
+
+          if (placement !== state.placement && triedPlacements.indexOf(state.placement) === -1) {
+            triedPlacements.push(state.placement);
             instance.setProps({
+              // @ts-ignore - unneeded DOMRect properties
               getReferenceClientRect: function getReferenceClientRect() {
                 return _getReferenceClientRect(state.placement);
               }
@@ -3991,7 +4290,7 @@ var inlinePositioning = {
     };
 
     function _getReferenceClientRect(placement) {
-      return getInlineBoundingClientRect(getBasePlacement$1(placement), reference.getBoundingClientRect(), arrayFrom(reference.getClientRects()), cursorRectIndex);
+      return getInlineBoundingClientRect(getBasePlacement(placement), reference.getBoundingClientRect(), arrayFrom(reference.getClientRects()), cursorRectIndex);
     }
 
     function setInternalProps(partialProps) {
@@ -4015,10 +4314,11 @@ var inlinePositioning = {
           var cursorRect = rects.find(function (rect) {
             return rect.left - 2 <= event.clientX && rect.right + 2 >= event.clientX && rect.top - 2 <= event.clientY && rect.bottom + 2 >= event.clientY;
           });
-          cursorRectIndex = rects.indexOf(cursorRect);
+          var index = rects.indexOf(cursorRect);
+          cursorRectIndex = index > -1 ? index : cursorRectIndex;
         }
       },
-      onUntrigger: function onUntrigger() {
+      onHidden: function onHidden() {
         cursorRectIndex = -1;
       }
     };
@@ -4154,5 +4454,4 @@ tippy.setDefaultProps({
   render: render
 });
 
-export default tippy;
-export { animateFill, createSingleton, delegate, followCursor, hideAll, inlinePositioning, ROUND_ARROW as roundArrow, sticky };
+export { animateFill, createSingleton, tippy as default, delegate, followCursor, hideAll, inlinePositioning, ROUND_ARROW as roundArrow, sticky };

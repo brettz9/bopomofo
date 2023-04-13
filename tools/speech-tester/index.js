@@ -39,7 +39,6 @@ const defaults = {
 };
 const prefs = new SimplePrefs({namespace: 'bopomofo-', defaults});
 
-(async () => {
 const state = {};
 const [_] = await Promise.all([
   i18n({
@@ -381,4 +380,3 @@ tippy('[data-tippy-content]', {
 // Trigger caching of JSON so ideally no need to wait when
 //   user clicks for flashcards
 getRandomSyllable();
-})();

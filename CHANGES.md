@@ -1,5 +1,11 @@
 # bopomofo CHANGES
 
+## 4.0.0
+
+- chore: Bump to Node 14
+- chore: add lint script, remove core-js and regenerator-runtime;
+  update devDeps.; linting
+
 ## 3.0.1
 
 - Docs: Add screenshots

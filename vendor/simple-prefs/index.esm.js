@@ -1,39 +1,3 @@
-function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) {
-  try {
-    var info = gen[key](arg);
-    var value = info.value;
-  } catch (error) {
-    reject(error);
-    return;
-  }
-
-  if (info.done) {
-    resolve(value);
-  } else {
-    Promise.resolve(value).then(_next, _throw);
-  }
-}
-
-function _asyncToGenerator(fn) {
-  return function () {
-    var self = this,
-        args = arguments;
-    return new Promise(function (resolve, reject) {
-      var gen = fn.apply(self, args);
-
-      function _next(value) {
-        asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value);
-      }
-
-      function _throw(err) {
-        asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err);
-      }
-
-      _next(undefined);
-    });
-  };
-}
-
 function _classCallCheck(instance, Constructor) {
   if (!(instance instanceof Constructor)) {
     throw new TypeError("Cannot call a class as a function");
@@ -56,15 +20,13 @@ function _createClass(Constructor, protoProps, staticProps) {
   return Constructor;
 }
 
-/* eslint-disable node/no-unsupported-features/es-syntax */
-
 /**
  * @module SimplePrefs
  */
 
 /**
-* @typedef {PlainObject<{string: module:SimplePrefs.Value}>}
-*   module:SimplePrefs.Defaults
+* @typedef {PlainObject<{
+* string: module:SimplePrefs.Value}>} module:SimplePrefs.Defaults
 */
 
 /**
@@ -74,6 +36,22 @@ function _createClass(Constructor, protoProps, staticProps) {
 /**
  * Preferences storage.
  */
+function _await(value, then, direct) {
+  if (direct) {
+    return then ? then(value) : value;
+  }
+
+  if (!value || !value.then) {
+    value = Promise.resolve(value);
+  }
+
+  return then ? value.then(then) : value;
+}
+/**
+ * Defaults for SimplePrefs.
+ */
+
+
 var SimplePrefs = /*#__PURE__*/function () {
   /**
    * @param {PlainObject} cfg
@@ -86,6 +64,7 @@ var SimplePrefs = /*#__PURE__*/function () {
     _classCallCheck(this, SimplePrefs);
 
     this.configurePrefs(cfg);
+    this.listeners = [];
   }
   /**
    * @param {PlainObject} cfg
@@ -118,31 +97,16 @@ var SimplePrefs = /*#__PURE__*/function () {
 
   }, {
     key: "getPref",
-    value: function () {
-      var _getPref = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee(key) {
-        var result;
-        return regeneratorRuntime.wrap(function _callee$(_context) {
-          while (1) {
-            switch (_context.prev = _context.next) {
-              case 0:
-                // eslint-disable-line require-await
-                result = localStorage.getItem(this.namespace + key);
-                return _context.abrupt("return", result === null ? this.prefDefaults.getPrefDefault(key) : JSON.parse(result));
+    value: function getPref(key) {
+      try {
+        var _this2 = this;
 
-              case 2:
-              case "end":
-                return _context.stop();
-            }
-          }
-        }, _callee, this);
-      }));
-
-      function getPref(_x) {
-        return _getPref.apply(this, arguments);
+        var result = localStorage.getItem(_this2.namespace + key);
+        return _await(result === null ? _this2.prefDefaults.getPrefDefault(key) : JSON.parse(result), void 0, !(result === null));
+      } catch (e) {
+        return Promise.reject(e);
       }
-
-      return getPref;
-    }()
+    }
     /**
      * Set a stringifiable preference value; returns `Promise` in anticipation
      *   of https://domenic.github.io/async-local-storage/ .
@@ -154,28 +118,15 @@ var SimplePrefs = /*#__PURE__*/function () {
 
   }, {
     key: "setPref",
-    value: function () {
-      var _setPref = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee2(key, val) {
-        return regeneratorRuntime.wrap(function _callee2$(_context2) {
-          while (1) {
-            switch (_context2.prev = _context2.next) {
-              case 0:
-                return _context2.abrupt("return", localStorage.setItem(this.namespace + key, JSON.stringify(val)));
+    value: function setPref(key, val) {
+      try {
+        var _this4 = this;
 
-              case 1:
-              case "end":
-                return _context2.stop();
-            }
-          }
-        }, _callee2, this);
-      }));
-
-      function setPref(_x2, _x3) {
-        return _setPref.apply(this, arguments);
+        return _await(localStorage.setItem(_this4.namespace + key, JSON.stringify(val)));
+      } catch (e) {
+        return Promise.reject(e);
       }
-
-      return setPref;
-    }()
+    }
     /**
     * @typedef {PlainObject} GetPrefSetPref
     * @property {module:SimplePrefs.SimplePrefs#getPref} getPref
@@ -196,14 +147,81 @@ var SimplePrefs = /*#__PURE__*/function () {
         setPref: this.setPref.bind(this)
       };
     }
+    /**
+    * @callback PreferenceCallback
+    * @returns {void}
+    */
+
+    /* eslint-disable promise/prefer-await-to-callbacks -- Repeating event */
+
+    /**
+    * @param {string} [key]
+    * @param {PreferenceCallback} cb
+    * @returns {void}
+    */
+
+  }, {
+    key: "listen",
+    value: function listen(key, cb) {
+      var _this5 = this;
+
+      if (typeof key === 'function') {
+        cb = key;
+        key = undefined;
+      }
+
+      var listener = function listener(e) {
+        if (e.key === null) {
+          // `null` for clear browser action or user `clear()`
+          if (key === undefined) {
+            // Only trigger when no key supplied
+            return;
+          }
+        } else {
+          if (!e.key.startsWith(_this5.namespace)) {
+            return;
+          }
+
+          if (key !== undefined && !e.key.startsWith(_this5.namespace + key)) {
+            return;
+          }
+        }
+
+        cb(e);
+      };
+
+      window.addEventListener('storage', listener);
+      this.listeners.push(listener);
+      return listener;
+    }
+    /**
+     * @param {EventListener} listener
+     * @returns {void}
+     */
+
+  }, {
+    key: "unlisten",
+    value: function unlisten(listener) {
+      if (listener) {
+        for (var i = 0; i < this.listeners.length; i++) {
+          if (listener === this.listeners[i]) {
+            this.listeners.splice(i, 1);
+            window.removeEventListener('storage', listener);
+            return;
+          }
+        }
+      }
+
+      this.listeners.forEach(function (listenerItem) {
+        window.removeEventListener('storage', listenerItem);
+      });
+    }
+    /* eslint-enable promise/prefer-await-to-callbacks -- Repeating event */
+
   }]);
 
   return SimplePrefs;
 }();
-/**
- * Defaults for SimplePrefs.
- */
-
 var SimplePrefsDefaults = /*#__PURE__*/function () {
   /**
    *
@@ -225,28 +243,15 @@ var SimplePrefsDefaults = /*#__PURE__*/function () {
 
   _createClass(SimplePrefsDefaults, [{
     key: "getPrefDefault",
-    value: function () {
-      var _getPrefDefault = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee3(key) {
-        return regeneratorRuntime.wrap(function _callee3$(_context3) {
-          while (1) {
-            switch (_context3.prev = _context3.next) {
-              case 0:
-                return _context3.abrupt("return", this.defaults[key]);
+    value: function getPrefDefault(key) {
+      try {
+        var _this7 = this;
 
-              case 1:
-              case "end":
-                return _context3.stop();
-            }
-          }
-        }, _callee3, this);
-      }));
-
-      function getPrefDefault(_x4) {
-        return _getPrefDefault.apply(this, arguments);
+        return _await(_this7.defaults[key]);
+      } catch (e) {
+        return Promise.reject(e);
       }
-
-      return getPrefDefault;
-    }()
+    }
     /**
      * Set parsed default value for a preference.
      * @param {string} key Preference key
@@ -256,32 +261,17 @@ var SimplePrefsDefaults = /*#__PURE__*/function () {
 
   }, {
     key: "setPrefDefault",
-    value: function () {
-      var _setPrefDefault = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee4(key, value) {
-        var oldValue;
-        return regeneratorRuntime.wrap(function _callee4$(_context4) {
-          while (1) {
-            switch (_context4.prev = _context4.next) {
-              case 0:
-                // eslint-disable-line require-await
-                oldValue = this.defaults[key];
-                this.defaults[key] = value;
-                return _context4.abrupt("return", oldValue);
+    value: function setPrefDefault(key, value) {
+      try {
+        var _this9 = this;
 
-              case 3:
-              case "end":
-                return _context4.stop();
-            }
-          }
-        }, _callee4, this);
-      }));
-
-      function setPrefDefault(_x5, _x6) {
-        return _setPrefDefault.apply(this, arguments);
+        var oldValue = _this9.defaults[key];
+        _this9.defaults[key] = value;
+        return _await(oldValue);
+      } catch (e) {
+        return Promise.reject(e);
       }
-
-      return setPrefDefault;
-    }()
+    }
   }]);
 
   return SimplePrefsDefaults;

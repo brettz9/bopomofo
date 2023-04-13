@@ -1,5 +1,4 @@
 /* eslint-disable no-console -- CLI */
-import 'core-js/features/array/flat-map.js';
 import fs from 'fs';
 import path from 'path';
 import util from 'util';
@@ -20,7 +19,6 @@ function stripPinyinDiacritics (str) {
 const readFile = util.promisify(fs.readFile);
 const writeFile = util.promisify(fs.writeFile);
 
-(async () => {
 // console.log(await unihanETL({version: true}), 'Version returned.');
 
 await unihanETL({
@@ -90,7 +88,7 @@ const mostFrequentChars = mostFrequentCharsPreMap.map(({
     nonUnique,
     readings[0]
   ]; // , kFrequency, kTotalStrokes['zh-Hans']];
-}).filter((i) => i);
+}).filter(Boolean);
 
 /**
 * @typedef {GenericArray} CharInfo
@@ -175,7 +173,7 @@ const possibleBopomofoSyllablesEnhanced = possibleBopomofoSyllables.map(
     }
     return [bpmf, freqChars[4], freqChars[0]];
   }
-).filter((i) => i);
+).filter(Boolean);
 
 /*
 console.log(
@@ -205,4 +203,3 @@ await writeFile(
 );
 console.log(`Wrote file ${mostFrequentCharsPath}`);
 */
-})();

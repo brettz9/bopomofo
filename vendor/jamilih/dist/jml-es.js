@@ -110,6 +110,7 @@ function _applyAnyStylesheet(node) {
  * @static
  * @param {Element} parent The parent to which to append the element
  * @param {Node} child The element or other node to append to the parent
+ * @throws {Error} Rethrow if problem with `append` and unhandled
  * @returns {void}
  */
 
@@ -180,6 +181,7 @@ function _addEvent(el, type, handler, capturing) {
 * @param {'entity'|'decimal'|'hexadecimal'} type Type of reference
 * @param {string} prefix Text to prefix immediately after the "&"
 * @param {string} arg The body of the reference
+* @throws {TypeError}
 * @returns {Text} The text node of the resolved reference
 */
 
@@ -187,7 +189,7 @@ function _addEvent(el, type, handler, capturing) {
 function _createSafeReference(type, prefix, arg) {
   // For security reasons related to innerHTML, we ensure this string only
   //  contains potential entity characters
-  if (!arg.match(/^\w+$/u)) {
+  if (!/^\w+$/u.test(arg)) {
     throw new TypeError(`Bad ${type} reference; with prefix "${prefix}" and arg "${arg}"`);
   }
 
@@ -470,6 +472,7 @@ const jml = function jml(...args) {
   /**
    *
    * @param {Object<{string: string}>} atts
+   * @throws {TypeError}
    * @returns {void}
    */
 
@@ -526,13 +529,7 @@ const jml = function jml(...args) {
 
             if (template) {
               if (Array.isArray(template)) {
-                if (_getType(template[0]) === 'object') {
-                  // Has attributes
-                  template = jml('template', ...template, doc.body);
-                } else {
-                  // Array is for the children
-                  template = jml('template', template, doc.body);
-                }
+                template = _getType(template[0]) === 'object' ? jml('template', ...template, doc.body) : jml('template', template, doc.body);
               } else if (typeof template === 'string') {
                 template = $(template);
               }
@@ -746,8 +743,7 @@ const jml = function jml(...args) {
               while (node.childNodes[j]) {
                 const cn = node.childNodes[j];
                 cn.remove(); // `j` should stay the same as removing will cause node to be present
-              } // eslint-disable-next-line unicorn/no-fn-reference-in-iterator
-
+              }
 
               attVal.childNodes.forEach(_childrenToJML(node));
             } else {
@@ -773,13 +769,11 @@ const jml = function jml(...args) {
                 }
 
                 if (attVal.head) {
-                  // eslint-disable-next-line unicorn/no-fn-reference-in-iterator
                   attVal.head.forEach(_appendJML(head));
                 }
               }
 
               if (attVal.body) {
-                // eslint-disable-next-line unicorn/no-fn-reference-in-iterator
                 attVal.body.forEach(_appendJMLOrText(body));
               }
             }
@@ -833,12 +827,7 @@ const jml = function jml(...args) {
               const pastInitialProp = startProp !== '';
               Object.keys(atVal).forEach(key => {
                 const value = atVal[key];
-
-                if (pastInitialProp) {
-                  prop = startProp + key.replace(hyphenForCamelCase, _upperCase).replace(/^([a-z])/u, _upperCase);
-                } else {
-                  prop = startProp + key.replace(hyphenForCamelCase, _upperCase);
-                }
+                prop = pastInitialProp ? startProp + key.replace(hyphenForCamelCase, _upperCase).replace(/^([a-z])/u, _upperCase) : startProp + key.replace(hyphenForCamelCase, _upperCase);
 
                 if (value === null || typeof value !== 'object') {
                   if (!_isNullish(value)) {
@@ -1038,9 +1027,6 @@ const jml = function jml(...args) {
     const type = _getType(arg);
 
     switch (type) {
-      default:
-        throw new TypeError(`Unexpected type: ${type}; arg: ${arg}; index ${i} on args: ${JSON.stringify(args)}`);
-
       case 'null':
         // null always indicates a place-holder (only needed for last argument if want array returned)
         if (i === argc - 1) {
@@ -1048,7 +1034,7 @@ const jml = function jml(...args) {
           // Todo: Fix to allow application of stylesheets of style tags within fragments?
 
 
-          return nodes.length <= 1 ? nodes[0] // eslint-disable-next-line unicorn/no-fn-reference-in-iterator
+          return nodes.length <= 1 ? nodes[0] // eslint-disable-next-line unicorn/no-array-callback-reference
           : nodes.reduce(_fragReducer, doc.createDocumentFragment()); // nodes;
         }
 
@@ -1135,17 +1121,13 @@ const jml = function jml(...args) {
               if (_getType(atts) === 'object' && atts.is) {
                 const {
                   is
-                } = atts; // istanbul ignore else
+                } = atts; // istanbul ignore next
 
-                if (doc.createElementNS) {
-                  elem = doc.createElementNS(NS_HTML, elStr, {
-                    is
-                  });
-                } else {
-                  elem = doc.createElement(elStr, {
-                    is
-                  });
-                }
+                elem = doc.createElementNS ? doc.createElementNS(NS_HTML, elStr, {
+                  is
+                }) : doc.createElement(elStr, {
+                  is
+                });
               } else
                 /* istanbul ignore else */
                 if (doc.createElementNS) {
@@ -1174,15 +1156,8 @@ const jml = function jml(...args) {
             // As namespace of element already set as XHTML, we need to change the namespace
             // elem.setAttribute('xmlns', atts.xmlns); // Doesn't work
             // Can't set namespaceURI dynamically, renameNode() is not supported, and setAttribute() doesn't work to change the namespace, so we resort to this hack
-            let replacer;
-
-            if (typeof atts.xmlns === 'object') {
-              replacer = _replaceDefiner(atts.xmlns);
-            } else {
-              replacer = ' xmlns="' + atts.xmlns + '"';
-            } // try {
+            const replacer = typeof atts.xmlns === 'object' ? _replaceDefiner(atts.xmlns) : ' xmlns="' + atts.xmlns + '"'; // try {
             // Also fix DOMParser to work with text/html
-
 
             elem = nodes[nodes.length - 1] = new win.DOMParser().parseFromString(new win.XMLSerializer().serializeToString(elem) // Mozilla adds XHTML namespace
             .replace(' xmlns="' + NS_HTML + '"', replacer), 'application/xml').documentElement; // Todo: Report to plugins
@@ -1274,6 +1249,9 @@ const jml = function jml(...args) {
 
           break;
         }
+
+      default:
+        throw new TypeError(`Unexpected type: ${type}; arg: ${arg}; index ${i} on args: ${JSON.stringify(args)}`);
     }
   }
 
@@ -1292,6 +1270,7 @@ const jml = function jml(...args) {
 * @param {boolean} [config.stringOutput=false] Whether to output the Jamilih object as a string.
 * @param {boolean} [config.reportInvalidState=true] If true (the default), will report invalid state errors
 * @param {boolean} [config.stripWhitespace=false] Strip whitespace for text nodes
+* @throws {TypeError}
 * @returns {JamilihArray|string} Array containing the elements which represent
 * a Jamilih object, or, if `stringOutput` is true, it will be the stringified
 * version of such an object
@@ -1413,6 +1392,7 @@ jml.toJML = function (dom, {
    *
    * @param {Node} node
    * @param {object<{string: string}>} namespaces
+   * @throws {TypeError}
    * @returns {void}
    */
 

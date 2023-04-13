@@ -1,5 +1,5 @@
 function _slicedToArray(arr, i) {
-  return _arrayWithHoles(arr) || _iterableToArrayLimit(arr, i) || _nonIterableRest();
+  return _arrayWithHoles(arr) || _iterableToArrayLimit(arr, i) || _unsupportedIterableToArray(arr, i) || _nonIterableRest();
 }
 
 function _arrayWithHoles(arr) {
@@ -7,10 +7,7 @@ function _arrayWithHoles(arr) {
 }
 
 function _iterableToArrayLimit(arr, i) {
-  if (!(Symbol.iterator in Object(arr) || Object.prototype.toString.call(arr) === "[object Arguments]")) {
-    return;
-  }
-
+  if (typeof Symbol === "undefined" || !(Symbol.iterator in Object(arr))) return;
   var _arr = [];
   var _n = true;
   var _d = false;
@@ -36,8 +33,25 @@ function _iterableToArrayLimit(arr, i) {
   return _arr;
 }
 
+function _unsupportedIterableToArray(o, minLen) {
+  if (!o) return;
+  if (typeof o === "string") return _arrayLikeToArray(o, minLen);
+  var n = Object.prototype.toString.call(o).slice(8, -1);
+  if (n === "Object" && o.constructor) n = o.constructor.name;
+  if (n === "Map" || n === "Set") return Array.from(o);
+  if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen);
+}
+
+function _arrayLikeToArray(arr, len) {
+  if (len == null || len > arr.length) len = arr.length;
+
+  for (var i = 0, arr2 = new Array(len); i < len; i++) arr2[i] = arr[i];
+
+  return arr2;
+}
+
 function _nonIterableRest() {
-  throw new TypeError("Invalid attempt to destructure non-iterable instance");
+  throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
 }
 
 function loadStylesheets(stylesheets) {
@@ -84,12 +98,11 @@ function loadStylesheets(stylesheets) {
       } else if (after) {
         after.after(link);
       } else {
-        // eslint-disable-next-line unicorn/prefer-node-append
         document.head.appendChild(link);
       }
     }
 
-    var link = document.createElement('link'); // eslint-disable-next-line promise/avoid-new
+    var link = document.createElement('link'); // eslint-disable-next-line promise/avoid-new -- No native option
 
     return new Promise(function (resolve, reject) {
       var rej = reject;
@@ -127,7 +140,8 @@ function loadStylesheets(stylesheets) {
         cnv.width = 16;
         cnv.height = 16;
         var context = cnv.getContext('2d');
-        var img = document.createElement('img');
+        var img = document.createElement('img'); // eslint-disable-next-line promise/prefer-await-to-callbacks -- No API
+
         img.addEventListener('error', function (error) {
           reject(error);
         });
@@ -144,7 +158,8 @@ function loadStylesheets(stylesheets) {
       link.rel = 'stylesheet';
       link.type = 'text/css';
       link.href = stylesheetURL;
-      addLink();
+      addLink(); // eslint-disable-next-line promise/prefer-await-to-callbacks -- No API
+
       link.addEventListener('error', function (error) {
         rej(error);
       });
