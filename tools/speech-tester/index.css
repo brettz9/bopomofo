@@ -16,3 +16,7 @@
 .symbolType {
     margin-top: 0;
 }
+
+dialog {
+  width: 200px;
+}

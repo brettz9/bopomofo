@@ -65,7 +65,7 @@ if (state.detectedLocale) {
 
 /**
  *
- * @returns {external:JamilihArray}
+ * @returns {JamilihArray}
  */
 function buildFlashcardButton () {
   return ['button', {id: 'flashcardSound', $on: {
@@ -153,6 +153,7 @@ async function init () {
                     syllableBPMFChars +
                     (displayChars ? ')' : '');
                 tippy('button[data-tippy-content]', {
+                  appendTo: dialog,
                   zIndex: tippyZIndex,
                   followCursor: true,
                   distance: 100,
@@ -226,7 +227,7 @@ async function init () {
                     id: preference,
                     checked: await prefs.getPref(preference),
                     $on: {
-                      async click (e) {
+                      async click () {
                         await prefs.setPref(preference, this.checked);
                       }
                     }

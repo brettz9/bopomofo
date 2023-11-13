@@ -152,9 +152,9 @@ export const medials = [
 ];
 
 export const finalsToPinyin = [
-  medials.slice(-1)[0]
+  medials.at(-1).
     // We only need `ㄭ` as others are part of finals as well
-    .slice(0, 2),
+    slice(0, 2),
   ...finals.map((finalChars) => {
     // Those within the switch are irregular relative to how the second
     //  character is transformed; there are also, in a few cases,
@@ -204,7 +204,7 @@ export const finalsToPinyin = [
 /**
  *
  * @param {string} finalChars
- * @param {boolean} [component=true]
+ * @param {boolean} [component]
  * @returns {void|"e"|string} Pinyin
  */
 export function findPinyinForBopomofoChars (finalChars, component = true) {

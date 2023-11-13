@@ -1,3 +1,4 @@
+/* eslint-env node -- Node script */
 /* eslint-disable no-console -- CLI */
 import fs from 'fs';
 import path from 'path';
@@ -11,9 +12,9 @@ import {possibleBopomofoSyllables} from '../src/index.js';
  * @returns {string}
  */
 function stripPinyinDiacritics (str) {
-  return str.normalize('NFD')
-    .replace(/[\u0300-\u0307\u0309-\u036F]/gu, '')
-    .replace(/u\u0308/gu, '\u00FC'); // We add back the composite `u` diaeresis
+  return str.normalize('NFD').
+    replaceAll(/[\u0300-\u0307\u0309-\u036F]/gu, '').
+    replaceAll('u\u0308', '\u00FC'); // We add back the composite `u` diaeresis
 }
 
 const readFile = util.promisify(fs.readFile);
@@ -58,7 +59,8 @@ const mostFrequentCharsPreMap = json.sort((a, b) => {
 });
 
 const mostFrequentChars = mostFrequentCharsPreMap.map(({
-  kFrequency, kTotalStrokes, kSimplifiedVariant, kHanyuPinyin, char: c
+  kFrequency, // kTotalStrokes,
+  kSimplifiedVariant, kHanyuPinyin, char: c
 }) => {
   const readings = kHanyuPinyin && kHanyuPinyin[0] && kHanyuPinyin[0].readings;
   if (!readings || !readings.length) {

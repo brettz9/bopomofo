@@ -3,14 +3,17 @@
 // https://github.com/helen-dikareva/axe-testcafe
 import {Selector, ClientFunction} from 'testcafe';
 
+// eslint-disable-next-line new-cap -- API
 const voiceSpeaking = ClientFunction(() => {
   return window.speechSynthesis.speaking;
 });
 
-fixture`TestCafe UI tests`
-  .page`http://localhost:8049/tools/speech-tester/`;
+// eslint-disable-next-line no-unused-expressions -- Testcafe
+fixture`TestCafe UI tests`.
+  page`http://localhost:8049/tools/speech-tester/`;
 
 test('Speech Tester: Get sounds starting', async (t) => {
+  // eslint-disable-next-line new-cap -- API
   const buttonPlaySelector = Selector('button#play');
   await t.expect(
     buttonPlaySelector.exists
