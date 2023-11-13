@@ -1,5 +1,9 @@
 # bopomofo CHANGES
 
+## 4.1.0
+
+- chore: update devDeps. and lint
+
 ## 4.0.0
 
 - chore: Bump to Node 14
