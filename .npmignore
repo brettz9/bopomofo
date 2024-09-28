@@ -1,2 +1,3 @@
 unihan.json
 data/mostFrequentChars.json
+build/build-kFrequency.js

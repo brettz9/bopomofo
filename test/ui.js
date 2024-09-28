@@ -8,7 +8,6 @@ const voiceSpeaking = ClientFunction(() => {
   return window.speechSynthesis.speaking;
 });
 
-// eslint-disable-next-line no-unused-expressions -- Testcafe
 fixture`TestCafe UI tests`.
   page`http://localhost:8049/tools/speech-tester/`;
 

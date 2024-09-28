@@ -29,7 +29,6 @@ async function axeCheckWithConfig (t) {
   await t.expect(violations.length === 0).ok(createReport(violations));
 }
 
-// eslint-disable-next-line no-unused-expressions -- Testcafe
 fixture`TestCafe Axe accessibility tests (Speech Tester)`.
   page`http://localhost:8049/tools/speech-tester/`;
 

@@ -43,6 +43,8 @@ const state = {};
 const [_] = await Promise.all([
   i18n({
     state,
+    // eslint-disable-next-line @stylistic/max-len -- Long
+    // eslint-disable-next-line n/no-unsupported-features/node-builtins -- Browser
     locales: [...navigator.languages, 'en-US'],
     localesBasePath: '../../'
   }),

@@ -249,6 +249,7 @@ export const possibleBopomofoSyllables = [
  * @returns {Integer}
  */
 function getRandomInt (max) {
+  // eslint-disable-next-line sonarjs/pseudo-random -- Ok
   return Math.floor(Math.random() * Math.floor(max));
 }
 // Todo: Could add in option to add tones too (and use in GUI tool)

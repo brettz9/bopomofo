@@ -1,5 +1,0 @@
-node_modules
-vendor
-
-# Items to move to own repo
-!vendor/i18n-safe
