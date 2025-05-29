@@ -3,7 +3,7 @@ import resolve from '@rollup/plugin-node-resolve';
 export default [
   {
     // By building from distribution file, we can avoid
-    //   some fragility, since the only based-in dep. now
+    //   some fragility, since the only baked-in dep. now
     //   is popper.js
     // This is the file pointed to by tippy.js' `module`
     //   in `package.json`, so we could check for that
