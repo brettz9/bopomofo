@@ -7,6 +7,9 @@ system for Mandarin Chinese.
 While the original Bopomofo symbols are provided, it can also be used for
 just learning the sounds as used in mainland China.
 
+See the [demo](https://brettz9.github.io/bopomofo/tools/speech-tester/)
+online (tested in Chrome only).
+
 ## Screenshots
 
 ![Main view](./screenshots/main.png)
