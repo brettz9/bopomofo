@@ -5,7 +5,7 @@ import {Selector, ClientFunction} from 'testcafe';
 
 // eslint-disable-next-line new-cap -- API
 const voiceSpeaking = ClientFunction(() => {
-  return window.speechSynthesis.speaking;
+  return globalThis.speechSynthesis.speaking;
 });
 
 fixture`TestCafe UI tests`.

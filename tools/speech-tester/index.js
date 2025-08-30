@@ -14,7 +14,7 @@ import dialogPolyfill from
   '../../vendor/dialog-polyfill/dist/dialog-polyfill.esm.js';
 
 const tippyZIndex = 100150; // dialog is set to 100149
-const synth = window.speechSynthesis;
+const synth = globalThis.speechSynthesis;
 
 const backgroundColors = [
   'Pink', 'DeepPink',
@@ -365,7 +365,7 @@ let lastFocusedElement;
 document.addEventListener('focus', function ({target}) {
   lastFocusedElement = target;
 }, true); // Must be capturing for `focus` or `blur`
-window.addEventListener('click', function ({target}) {
+globalThis.addEventListener('click', function ({target}) {
   // Focus doesn't seem to always detect (at least in Firefox)
   if (!target.classList.contains('bopomofoSymbol')) {
     lastFocusedElement = target;
