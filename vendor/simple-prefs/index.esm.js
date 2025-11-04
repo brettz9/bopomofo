@@ -1,10 +1,18 @@
 /**
-* @typedef {{[key: string]: Value}} Defaults
-*/
+ * @typedef {{[key: string]: JSONValue}} Defaults
+ */
 
 /**
-* @typedef {boolean|number|string} Value
-*/
+ * @typedef {null|boolean|number|string} JSONPrimitive
+ */
+/**
+ * @typedef {JSONValue[]} JSONArray
+ */
+/**
+ * @typedef {JSONPrimitive | JSONArray | {
+ *   [key in string]: JSONValue
+ * }} JSONValue
+ */
 
 /**
  * Preferences storage.
@@ -52,12 +60,11 @@ class SimplePrefs {
    * @param {SimplePrefsDefaults} [cfg.prefDefaults]
    * @returns {void}
    */
-  configurePrefs(_ref) {
-    let {
-      namespace,
-      defaults,
-      prefDefaults = simplePrefsDefaults(defaults)
-    } = _ref;
+  configurePrefs({
+    namespace,
+    defaults,
+    prefDefaults = simplePrefsDefaults(defaults)
+  }) {
     this.namespace = namespace ?? '';
     this.prefDefaults = prefDefaults;
   }
@@ -66,7 +73,7 @@ class SimplePrefs {
    * of https://domenic.github.io/async-local-storage/ .
    * @callback GetPref
    * @param {string} key Preference key (for Chrome-Compatibility, only `\w+`)
-   * @returns {Promise<Value>} Resolves to the parsed
+   * @returns {Promise<JSONValue>} Resolves to the parsed
    *   value (defaulting if necessary)
    */
 
@@ -83,7 +90,7 @@ class SimplePrefs {
    *   of https://domenic.github.io/async-local-storage/ .
    * @callback SetPref
    * @param {string} key Preference key (for Chrome-Compatibility, only `\w+`)
-   * @param {Value} val Stringifiable value
+   * @param {JSONValue} val Stringifiable value
    * @returns {Promise<void>} Resolves after setting the item (Not currently
    *    in use)
    */
@@ -140,16 +147,16 @@ class SimplePrefs {
           return;
         }
       } else {
-        if (!e.key.startsWith( /** @type {string} */this.namespace)) {
+        if (!e.key.startsWith(/** @type {string} */this.namespace)) {
           return;
         }
-        if (key !== undefined && !e.key.startsWith( /** @type {string} */this.namespace + key)) {
+        if (key !== undefined && !e.key.startsWith(/** @type {string} */this.namespace + key)) {
           return;
         }
       }
       cb(e);
     };
-    window.addEventListener('storage', listener);
+    globalThis.addEventListener('storage', listener);
     this.listeners.push(listener);
     return listener;
   }
@@ -163,13 +170,13 @@ class SimplePrefs {
       for (let i = 0; i < this.listeners.length; i++) {
         if (listener === this.listeners[i]) {
           this.listeners.splice(i, 1);
-          window.removeEventListener('storage', listener);
+          globalThis.removeEventListener('storage', listener);
           return;
         }
       }
     }
     this.listeners.forEach(listenerItem => {
-      window.removeEventListener('storage', listenerItem);
+      globalThis.removeEventListener('storage', listenerItem);
     });
   }
   /* eslint-enable promise/prefer-await-to-callbacks -- Repeating event */
@@ -179,16 +186,15 @@ class SimplePrefsDefaults {
    *
    * @param {{defaults: Defaults}} defaults
    */
-  constructor(_ref2) {
-    let {
-      defaults
-    } = _ref2;
+  constructor({
+    defaults
+  }) {
     this.defaults = defaults;
   }
   /**
    * Get parsed default value for a preference.
    * @param {string} key Preference key
-   * @returns {Promise<Value>}
+   * @returns {Promise<JSONValue>}
    */
   getPrefDefault(key) {
     const _this3 = this;
@@ -201,8 +207,8 @@ class SimplePrefsDefaults {
   /**
    * Set parsed default value for a preference.
    * @param {string} key Preference key
-   * @param {Value} value
-   * @returns {Promise<Value>} The old value
+   * @param {JSONValue} value
+   * @returns {Promise<JSONValue>} The old value
    */
   setPrefDefault(key, value) {
     const _this4 = this;
@@ -219,8 +225,7 @@ class SimplePrefsDefaults {
  * @param {Defaults} [defaults]
  * @returns {SimplePrefsDefaults}
  */
-function simplePrefsDefaults() {
-  let defaults = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+function simplePrefsDefaults(defaults = {}) {
   return new SimplePrefsDefaults({
     defaults
   });

@@ -6,6 +6,12 @@ import util from 'util';
 import unihanETL from 'node-unihan-etl';
 import {possibleBopomofoSyllables} from '../src/index.js';
 
+/* eslint-disable jsdoc/reject-any-type -- Arbitrary */
+/**
+ * @typedef {any} AnyValue
+ */
+/* eslint-enable jsdoc/reject-any-type -- Arbitrary */
+
 /**
  *
  * @param {string} str
@@ -13,7 +19,7 @@ import {possibleBopomofoSyllables} from '../src/index.js';
  */
 function stripPinyinDiacritics (str) {
   return str.normalize('NFD').
-    replaceAll(/[\u0300-\u0307\u0309-\u036F]/gu, '').
+    replaceAll(/[\u0300-\u0307\u0309-\u036F]/gv, '').
     replaceAll('u\u0308', '\u00FC'); // We add back the composite `u` diaeresis
 }
 
@@ -32,77 +38,111 @@ await unihanETL({
 
 const unihanFile = path.join(process.cwd(), 'unihan.json');
 
+// @ts-expect-error Ok
 const json = JSON.parse(await readFile(unihanFile));
 
-const mostFrequentCharsPreMap = json.sort((a, b) => {
-  if (a.kFrequency === b.kFrequency) {
-    return a.kTotalStrokes['zh-Hans'] === b.kTotalStrokes['zh-Hans']
-      ? 0
-      : a.kTotalStrokes['zh-Hans'] < b.kTotalStrokes['zh-Hans']
-        ? -1
-        : 1;
-  }
-  if (!a.kFrequency) {
-    if (!b.kFrequency) {
-      return 0;
+/**
+ * @typedef {{
+ *   kFrequency: string,
+ *   kTotalStrokes: {[key: string]: Integer}
+ * }} Unihan
+ */
+
+const mostFrequentCharsPreMap = json.toSorted(
+  /**
+   * @param {Unihan} a
+   * @param {Unihan} b
+   * @returns {1|0|-1}
+   */
+  (a, b) => {
+    if (a.kFrequency === b.kFrequency) {
+      return a.kTotalStrokes['zh-Hans'] === b.kTotalStrokes['zh-Hans']
+        ? 0
+        : a.kTotalStrokes['zh-Hans'] < b.kTotalStrokes['zh-Hans']
+          ? -1
+          : 1;
     }
-    return 1;
-  } else if (!b.kFrequency) {
-    return -1;
+    if (!a.kFrequency) {
+      if (!b.kFrequency) {
+        return 0;
+      }
+      return 1;
+    } else if (!b.kFrequency) {
+      return -1;
+    }
+    // Safe to avoid `parseInt` for frequencies being only 1-4
+    // const aa = parseInt(a.kFrequency);
+    // const bb = parseInt(b.kFrequency);
+    const aa = a.kFrequency;
+    const bb = b.kFrequency;
+    return aa === bb ? 0 : aa < bb ? -1 : 1;
   }
-  // Safe to avoid `parseInt` for frequencies being only 1-4
-  // const aa = parseInt(a.kFrequency);
-  // const bb = parseInt(b.kFrequency);
-  const aa = a.kFrequency;
-  const bb = b.kFrequency;
-  return aa === bb ? 0 : aa < bb ? -1 : 1;
-});
+);
 
-const mostFrequentChars = mostFrequentCharsPreMap.map(({
-  kFrequency, // kTotalStrokes,
-  kSimplifiedVariant, kHanyuPinyin, char: c
-}) => {
-  const readings = kHanyuPinyin && kHanyuPinyin[0] && kHanyuPinyin[0].readings;
-  if (!readings || !readings.length) {
-    // Why do some like "给" have no pinyin recorded?
-    // console.log(
-    //   'No readings: ', c, '::', kSimplifiedVariant, '::',
-    //   kHanyuPinyin, '::', kFrequency
-    // );
-    return null;
-  }
-  if (Array.isArray(kSimplifiedVariant)) {
-    kSimplifiedVariant = String.fromCodePoint(
-      Number.parseInt(kSimplifiedVariant[0].slice(2), 16)
-    );
-  }
-  const uniquePinyinNoTones = new Set(readings.map(
-    (s) => stripPinyinDiacritics(s)
-  ));
-  // Won't be good for quizzing if has other possible sounds;
-  //   however, some sounds may only be mixed with others (like "dei"?)
-  const nonUnique = uniquePinyinNoTones.size !== 1;
-  const sound = nonUnique
-    ? readings // .map(stripPinyinDiacritics);
-    : uniquePinyinNoTones.values().next().value;
+const mostFrequentChars = mostFrequentCharsPreMap.map(
+  /**
+   * @param {{
+   *   kFrequency: string,
+   *   kSimplifiedVariant: string|[string],
+   *   kHanyuPinyin?: [{readings: string[]}],
+   *   char: string
+   * }} cfg
+   * @returns {null|CharInfo}
+   */
+  ({
+    kFrequency, // kTotalStrokes,
+    kSimplifiedVariant, kHanyuPinyin, char: c
+  }) => {
+    const readings = kHanyuPinyin && kHanyuPinyin[0] &&
+      kHanyuPinyin[0].readings;
+    if (!readings || !readings.length) {
+      // Why do some like "给" have no pinyin recorded?
+      // console.log(
+      //   'No readings: ', c, '::', kSimplifiedVariant, '::',
+      //   kHanyuPinyin, '::', kFrequency
+      // );
+      return null;
+    }
+    if (Array.isArray(kSimplifiedVariant)) {
+      kSimplifiedVariant = String.fromCodePoint(
+        Number.parseInt(kSimplifiedVariant[0].slice(2), 16)
+      );
+    }
+    const uniquePinyinNoTones = new Set(readings.map(
+      (s) => stripPinyinDiacritics(s)
+    ));
+    // Won't be good for quizzing if has other possible sounds;
+    //   however, some sounds may only be mixed with others (like "dei"?)
+    const nonUnique = uniquePinyinNoTones.size !== 1;
+    const sound = nonUnique
+      ? readings // .map(stripPinyinDiacritics);
+      : /** @type {string} */ (
+        uniquePinyinNoTones.values().next().value
+      );
 
-  return [
-    kSimplifiedVariant || c,
-    sound,
-    Number.parseInt(kFrequency),
-    nonUnique,
-    readings[0]
-  ]; // , kFrequency, kTotalStrokes['zh-Hans']];
-}).filter(Boolean);
+    return [
+      kSimplifiedVariant || c,
+      sound,
+      Number.parseInt(kFrequency),
+      nonUnique,
+      readings[0]
+    ]; // , kFrequency, kTotalStrokes['zh-Hans']];
+  }
+).filter(Boolean);
 
 /**
-* @typedef {GenericArray} CharInfo
-* @property {string} 0 kSimplifiedVariant, defaulting to char
-* @property {string|string[]} 1 sound
-* @property {Integer} 2 kFrequency
-* @property {boolean} 3 nonUnique
-* @property {string} 4 First item of `readings`
-*/
+ * @typedef {number} Integer
+ */
+/**
+ * `kSimplifiedVariant` defaults to char.
+ * @typedef {[
+ *   kSimplifiedVariant: string,
+ *   sound: string|string[],
+ *   kFrequency: Integer,
+ *   nonUnique: boolean,
+ *   firstLineReadings: string
+ * ]} CharInfo
+ */
 
 /**
  *
@@ -115,17 +155,39 @@ function getFirstCharInfo (freqs) {
 
 const possibleBopomofoSyllablesEnhanced = possibleBopomofoSyllables.map(
   ([bpmf, pinyin]) => {
-    const freqsAll = mostFrequentChars.filter(([, freqPinyin, , nonUnique]) => {
-      return nonUnique ? freqPinyin.includes(pinyin) : pinyin === freqPinyin;
-    });
+    const freqsAll = mostFrequentChars.filter(
+      /**
+       * @param {[
+       *   AnyValue,
+       *   string,
+       *   AnyValue,
+       *   boolean
+       * ]} info
+       * @returns {boolean}
+       */
+      ([, freqPinyin, , nonUnique]) => {
+        return nonUnique ? freqPinyin.includes(pinyin) : pinyin === freqPinyin;
+      }
+    );
     // We pick an algorithm to get only those of the lowest
     //   frequency as possible
     let freqs, ct = 1;
     do {
-      // eslint-disable-next-line no-loop-func -- Variable content
-      freqs = freqsAll.filter(([, , kFrequency, nonUnique]) => {
-        return !nonUnique && kFrequency === ct;
-      });
+      freqs = freqsAll.filter(
+        /**
+         * @param {[
+         *   AnyValue,
+         *   AnyValue,
+         *   Integer,
+         *   boolean
+         * ]} cfg
+         * @returns {boolean}
+         */
+        // eslint-disable-next-line no-loop-func -- Variable content
+        ([, , kFrequency, nonUnique]) => {
+          return !nonUnique && kFrequency === ct;
+        }
+      );
       ct++;
     } while (!freqs.length && ct <= 5);
     if (!freqs.length) {
@@ -134,7 +196,10 @@ const possibleBopomofoSyllablesEnhanced = possibleBopomofoSyllables.map(
     const freqChars = getFirstCharInfo(freqs); // For now, we just include 1
     if (!freqChars || !freqChars[0]) {
       // Try again but without filtering out duplicates
-      const chr = {
+      /**
+       * @type {{[key: string]: [string, string]}}
+       */
+      const chrMap = {
         // These do not have pinyin for some reason
         dei: ['得', 'děi'],
         lia: ['俩', 'liǎ'],
@@ -160,7 +225,8 @@ const possibleBopomofoSyllablesEnhanced = possibleBopomofoSyllables.map(
         // xün
         // These single syllable finals: ê, ei, i, u, ü
         // All of the double syllable finals
-      }[pinyin] || [];
+      };
+      const chr = chrMap[pinyin] || [];
       /*
       if (!chr) {
         return null;

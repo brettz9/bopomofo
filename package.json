@@ -5,7 +5,8 @@
   "type": "module",
   "description": "Tool for studying bopomofo transliteration system",
   "scripts": {
-    "prepublishOnly": "pnpm i",
+    "prepublishOnly": "pnpm i && pnpm tsc",
+    "tsc": "tsc",
     "eslint": "eslint .",
     "lint": "npm run eslint",
     "open": "open-cli http://localhost:8049/tools/speech-tester/ && npm start",
@@ -20,7 +21,7 @@
     "test": "testcafe chrome test/**/*.js"
   },
   "browserslist": [
-    "defaults, not op_mini all"
+    "last 2 chrome versions"
   ],
   "repository": {
     "type": "git",
@@ -39,23 +40,22 @@
   },
   "homepage": "https://github.com/brettz9/bopomofo#readme",
   "engines": {
-    "node": ">=18.0.0"
+    "node": ">=20.11.0"
   },
-  "dependencies": {},
   "devDependencies": {
-    "@rollup/plugin-node-resolve": "^16.0.1",
-    "axe-core": "^4.10.3",
-    "axe-testcafe": "^3.0.0",
+    "@rollup/plugin-node-resolve": "^16.0.3",
+    "@testcafe-community/axe": "^3.5.0",
+    "axe-core": "^4.11.0",
     "dialog-polyfill": "^0.5.6",
-    "eslint": "^9.34.0",
-    "eslint-config-ash-nazg": "^39.0.1",
+    "eslint": "^9.39.1",
+    "eslint-config-ash-nazg": "^39.6.1",
     "http-server": "^14.1.1",
     "jamilih": "^0.60.0",
-    "load-stylesheets": "^0.12.5",
+    "load-stylesheets": "^0.13.0",
     "node-unihan-etl": "^0.1.1",
     "open-cli": "^8.0.0",
-    "rollup": "^4.49.0",
-    "simple-prefs": "^0.11.0",
+    "rollup": "^4.52.5",
+    "simple-prefs": "^0.12.1",
     "testcafe": "^3.7.2",
     "tippy.js": "^6.3.7"
   }

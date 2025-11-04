@@ -1,20 +1,14 @@
 // https://github.com/DevExpress/testcafe
 // https://devexpress.github.io/testcafe/documentation/test-api/
-// https://github.com/helen-dikareva/axe-testcafe
-import {axeCheck, createReport} from 'axe-testcafe';
+// https://github.com/testcafe-community/axe
+import {axeCheck} from '@testcafe-community/axe';
 
 /**
-* @external AxeResult
-*/
-/**
- * @external TestcafeTest
-*/
-/**
- * @param {external.TestcafeTest} t
- * @returns {Promise<AxeResult>}
+ * @param {typeof import('testcafe').t} t
+ * @returns {Promise<ReturnType<import('@testcafe-community/axe').AxeCheck>>}
  */
 async function axeCheckWithConfig (t) {
-  const /* error, */ {violations} = await axeCheck(
+  return await axeCheck(
     t,
     // context: https://github.com/dequelabs/axe-core/blob/develop/doc/API.md#context-parameter
     undefined,
@@ -26,7 +20,6 @@ async function axeCheckWithConfig (t) {
     }
     // , (err, results) {} // https://github.com/dequelabs/axe-core/blob/develop/doc/API.md#results-object
   );
-  await t.expect(violations.length === 0).ok(createReport(violations));
 }
 
 fixture`TestCafe Axe accessibility tests (Speech Tester)`.

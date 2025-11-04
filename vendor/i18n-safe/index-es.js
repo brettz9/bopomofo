@@ -1,22 +1,41 @@
-// Todo: Move to own library
+// Todo: Move to own library (Looks I may have already done `intl-dom`
+//   as the equivalent?)
 // Todo: Allow literal brackets (with or without substitutions
 //        of the same name present)
-/**
-Example:
 
-```js
-promiseChainForValues(['a', 'b', 'c'], (val) => {
-  return new Promise(function (resolve, reject) {
-    if (val === 'a') {
-      reject(new Error('missing'));
-    }
-    setTimeout(() => {
-      resolve(val);
-    }, 100);
-  });
-});
-```
-*/
+/**
+ * @example
+ * ```js
+ * promiseChainForValues(['a', 'b', 'c'], (val) => {
+ * return new Promise((resolve, reject) => {
+ *   if (val === 'a') {
+ *     reject(new Error('missing'));
+ *   }
+ *   setTimeout(() => {
+ *     resolve(val);
+ *   }, 100);
+ * });
+ *});
+ *```
+ */
+
+/**
+ * @callback I18NCallback
+ * @param {string} key
+ * @param {{
+ *   [key: string]: string|Element|
+ *     ((arg: string) => string)
+ * }} [substitutions]
+ * @param {{dom?: boolean}} [opts]
+ * @returns {undefined|string|HTMLSpanElement}
+ */
+
+/* eslint-disable jsdoc/reject-any-type -- Arbitrary */
+/**
+ * @typedef {any} AnyValue
+ */
+/* eslint-enable jsdoc/reject-any-type -- Arbitrary */
+
 /**
  * The given array will have its items processed in series; if the supplied
  *  callback, when passed the current item, returns a Promise or value that
@@ -26,18 +45,21 @@ promiseChainForValues(['a', 'b', 'c'], (val) => {
  * Accept an array of values to pass to a callback which should return
  *  a promise (or final result value) which resolves to a result or which
  *  rejects so that the next item in the array can be checked in series.
- * @param {Array} values Array of values
- * @param {Function} cb Accepts an item of the array as its single argument
- * @returns {Promise} Either resolves to a value derived from an item in the
- *  array or rejects if all items reject
+ * @param {AnyValue[]} values Array of values
+ * @param {(value: AnyValue) => AnyValue} cb Accepts an
+ *   item of the array as its single argument
+ * @returns {Promise<AnyValue>} Either resolves to a value derived
+ *   from an item in the array or rejects if all items reject
  */
-// eslint-disable-next-line promise/prefer-await-to-callbacks
+// eslint-disable-next-line @stylistic/max-len -- Long
+// eslint-disable-next-line promise/prefer-await-to-callbacks -- Already for Promises
 const promiseChainForValues = (values, cb) => {
   return values.reduce(async (p, value) => {
     try {
       return await p; // We'd short-circuit here instead if we could
     } catch (err) {
-      // eslint-disable-next-line promise/prefer-await-to-callbacks
+      // eslint-disable-next-line @stylistic/max-len -- Long
+      // eslint-disable-next-line promise/prefer-await-to-callbacks -- Already for Promises
       return cb(value);
     }
   }, Promise.reject(new Error(
@@ -46,16 +68,20 @@ const promiseChainForValues = (values, cb) => {
 };
 
 /**
- *
- * @param {string[]} locales BCP-47 language strings
- * @param {string[]} defaultLocales BCP-47 language strings
- * @param {function|false|string} defaults Upon a key not being found,
+ * @param {object} cfg
+ * @param {readonly string[]} [cfg.locales] BCP-47 language strings
+ * @param {string[]} [cfg.defaultLocales] BCP-47 language strings
+ * @param {false|string|((
+ *   key: string,
+ *   strings: Record<string, {message: string}>
+ * ) => string)} [cfg.defaults] Upon a key not being found,
  *   if `default` is a string, that value will be used for the message.
  *   If a function, the function will be called with the key and locale
  *   strings object. If `false`, an Error will be thrown.
- * @param {string} localesBasePath
- * @param {object} stateObj Will get `detectedLocale` set to a boolean
- * @returns {Promise} Promise which:
+ * @param {string} [cfg.localesBasePath]
+ * @param {{detectedLocale?: string}} [cfg.state] Will get
+ *   `detectedLocale` set to a boolean
+ * @returns {Promise<I18NCallback>} Promise which:
  *   1) resolves to a function that:
  *     a) checks a key against an object of strings
  *     b) optionally accepts an object of substitutions which are used when
@@ -76,8 +102,12 @@ export const i18n = async function i18n ({
 }) {
   const strings = await promiseChainForValues(
     [...locales, ...defaultLocales],
+    /**
+     * @param {string} locale
+     * @returns {Promise<AnyValue>}
+     */
     async function getLocale (locale) {
-      const url = `${localesBasePath.replace(/\/$/u, '')}/_locales/${locale}/messages.json`;
+      const url = `${localesBasePath.replace(/\/$/v, '')}/_locales/${locale}/messages.json`;
       try {
         const json = await (await fetch(url)).json();
         state.detectedLocale = locale;
@@ -87,12 +117,17 @@ export const i18n = async function i18n ({
           throw new Error('Locale not available');
         }
         // Try without hyphen
-        return getLocale(locale.replace(/-.*$/u, ''));
+        return getLocale(locale.replace(/-.*$/v, ''));
       }
     }
   );
+
+  /**
+   * @type {I18NCallback}
+   */
   return (key, substitutions, {dom} = {}) => {
-    const bracketRegex = /\{([^}]*?)(?:\|([^}]*))?\}/gu; // eslint-disable-line unicorn/no-unsafe-regex
+    // eslint-disable-next-line prefer-named-capture-group -- Convenient
+    const bracketRegex = /\{([^\}]*?)(?:\|([^\}]*))?\}/gv;
     let returnsDOM = false;
     const str = (
       key in strings && strings[key] && 'message' in strings[key]
@@ -112,15 +147,25 @@ export const i18n = async function i18n ({
     // Give chance to avoid this block when known to contain DOM
     if (!dom) {
       // Run this loop to optimize non-DOM substitutions
-      const ret = str.replace(bracketRegex, (_, ky, arg) => {
-        let substitution = substitutions[ky];
-        if (typeof substitution === 'function') {
-          substitution = substitution(arg);
+      const ret = str.replaceAll(
+        bracketRegex,
+        /**
+         * @param {string} _
+         * @param {string} ky
+         * @param {string} arg
+         * @returns {string}
+         */
+        (_, ky, arg) => {
+          let substitution = substitutions[ky];
+          if (typeof substitution === 'function') {
+            substitution = substitution(arg);
+          }
+          returnsDOM = returnsDOM ||
+            Boolean(substitution && typeof substitution === 'object' &&
+              substitution.nodeType === 1);
+          return typeof substitution === 'string' ? substitution : '';
         }
-        returnsDOM = returnsDOM ||
-          (substitution && substitution.nodeType === 1);
-        return substitution;
-      });
+      );
       if (!returnsDOM) {
         return ret;
       }

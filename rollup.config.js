@@ -1,4 +1,4 @@
-import resolve from '@rollup/plugin-node-resolve';
+import {nodeResolve} from '@rollup/plugin-node-resolve';
 
 export default [
   {
@@ -17,6 +17,6 @@ export default [
       format: 'esm',
       file: 'vendor/tippy.js/dist/tippy-bundle.esm.js'
     },
-    plugins: [resolve()]
+    plugins: [nodeResolve()]
   }
 ];

@@ -1,4 +1,6 @@
 /* eslint-disable camelcase -- For Chrome extension-compatible locales */
+
+/** @type {[string, string][]} */
 export const tones = [
   ['¯', 'ˉ'], // First could be left empty as first tone is default for bomofo
   ['ˊ', 'ˊ'],
@@ -11,6 +13,7 @@ export const tones = [
 //  independently (with the soft "-i" (ㄭ) vowel which is the only vowel item
 //  that isn't represented independently in transcription except here with
 //  consonants)
+/** @type {[string, string, string|null, string[]][]} */
 export const consonants = [
   ['ㄅ', 'b', null, [
     'ㄚ', 'ㄛ', 'ㄞ', 'ㄟ', 'ㄠ', 'ㄢ', 'ㄣ', 'ㄤ', 'ㄥ',
@@ -109,6 +112,7 @@ export const consonants = [
 
 // These are all present within `medials`, but indicate which can be a complete
 //  ending vowel combination
+/** @type {string[]} */
 export const finals = [
   // independent vowels and combinations thereof (i.e., all vowel combinations
   //  (without consonants) except the "-i" (ㄭ) which is not represented as an
@@ -122,6 +126,7 @@ export const finals = [
 // Similar to finals, but only single items (and includes -i (ㄭ) as it is
 //  connectable to consonants even while not used independently
 //  in transcription)
+/** @type {[string, string, string|null][]} */
 export const medials = [
   ['ㄚ', 'a', null],
   ['ㄛ', 'o', null],
@@ -152,9 +157,11 @@ export const medials = [
 ];
 
 export const finalsToPinyin = [
-  medials.at(-1).
-    // We only need `ㄭ` as others are part of finals as well
-    slice(0, 2),
+  /** @type {[string, string]} */
+  (/** @type {[string, string, string|null]} */
+    (medials.at(-1)).
+      // We only need `ㄭ` as others are part of finals as well
+      slice(0, 2)),
   ...finals.map((finalChars) => {
     // Those within the switch are irregular relative to how the second
     //  character is transformed; there are also, in a few cases,
@@ -191,9 +198,11 @@ export const finalsToPinyin = [
       return [
         finalChars, // BPMF
         [...finalChars].reduce((s, finalChar) => { // Phonetics
-          return s + medials.find(([chr]) => {
-            return finalChar === chr;
-          })[1];
+          return s + /** @type {[string, string, string | null]} */ (
+            medials.find(([chr]) => {
+              return finalChar === chr;
+            })
+          )[1];
         }, '')
       ];
     }
@@ -223,7 +232,7 @@ export function findPinyinForBopomofoChars (finalChars, component = true) {
   return result[1];
 }
 
-export const possibleBopomofoSyllables = [
+export const possibleBopomofoSyllables = /** @type {Syllable[]} */ ([
   ...consonants.flatMap((
     [c, phonetic, /* fullPhonetic */ , availableFinals]
   ) => {
@@ -234,15 +243,25 @@ export const possibleBopomofoSyllables = [
         //  `findPinyinForBopomofoChars` so it can add `i`
         (finalChars === 'ㄭ' ? '' : finalChars)
         ),
-        phonetic + findPinyinForBopomofoChars(finalChars)
+        phonetic + /** @type {string} */ (
+          findPinyinForBopomofoChars(finalChars)
+        )
       ];
     });
   }),
   ...finals.map((r) => {
-    return [r, findPinyinForBopomofoChars(r, false)];
+    return [r, /** @type {string} */ (
+      findPinyinForBopomofoChars(r, false)
+    )];
   })
-];
+]);
 
+/**
+ * @typedef {number} Integer
+ */
+/**
+ * @typedef {number} Float
+ */
 /**
  *
  * @param {Float} max
@@ -263,11 +282,16 @@ export function getRandomSyllable () {
   ];
 }
 
+/** @type {Syllable[]} */
 let possibleBopomofoSyllablesEnhanced;
 
 /**
+ * @typedef {[string, string, string]} Syllable
+ */
+
+/**
  *
- * @returns {Syllable}
+ * @returns {Promise<Syllable>}
  */
 export async function getRandomEnhancedSyllable () {
   if (!possibleBopomofoSyllablesEnhanced) {

@@ -1,17 +1,39 @@
 /* eslint-disable camelcase -- For Chrome extension-compatible locales */
 
-import {jml, $, body, nbsp} from '../../vendor/jamilih/dist/jml-es.js';
-import loadStylesheets from '../../vendor/load-stylesheets/dist/index-es.js';
+import {jml, body, nbsp} from 'jamilih';
+import loadStylesheets from 'load-stylesheets';
+import tippy from 'tippy.js';
+import {SimplePrefs} from 'simple-prefs';
+import dialogPolyfill from 'dialog-polyfill';
+import {i18n} from '../../vendor/i18n-safe/index-es.js';
 import {
   consonants,
   finals_single, finals_double, finals_single_nontranscriptional,
   tones, getRandomEnhancedSyllable as getRandomSyllable
 } from '../../src/index.js';
-import tippy from '../../vendor/tippy.js/dist/tippy-bundle.esm.js';
-import {i18n} from '../../vendor/i18n-safe/index-es.js';
-import {SimplePrefs} from '../../vendor/simple-prefs/index.esm.js';
-import dialogPolyfill from
-  '../../vendor/dialog-polyfill/dist/dialog-polyfill.esm.js';
+
+/**
+ * @param {string} sel
+ */
+const $ = (sel) => {
+  return /** @type {HTMLElement} */ (document.querySelector(sel));
+};
+
+/**
+ * @param {string} sel
+ */
+const $s = (sel) => {
+  return /** @type {HTMLSelectElement} */ (document.querySelector(sel));
+};
+
+/**
+ * @param {string} sel
+ */
+const $t = (sel) => {
+  return /** @type {HTMLTextAreaElement} */ (
+    document.querySelector(sel)
+  );
+};
 
 const tippyZIndex = 100150; // dialog is set to 100149
 const synth = globalThis.speechSynthesis;
@@ -39,6 +61,7 @@ const defaults = {
 };
 const prefs = new SimplePrefs({namespace: 'bopomofo-', defaults});
 
+/** @type {{detectedLocale?: string}} */
 const state = {};
 const [_] = await Promise.all([
   i18n({
@@ -67,21 +90,25 @@ if (state.detectedLocale) {
 
 /**
  *
- * @returns {JamilihArray}
+ * @returns {import('jamilih').JamilihArray}
  */
 function buildFlashcardButton () {
   return ['button', {id: 'flashcardSound', $on: {
     async click () {
       const pref = await prefs.getPref('Pronounce_component_syllables');
       if (pref) {
-        if (this.dataset.syllableBPMFChars.length > 1) {
-          [...this.dataset.syllableBPMFChars].forEach((chr) => {
+        // eslint-disable-next-line prefer-destructuring -- TS
+        const syllableBPMFChars = /** @type {string} */ (
+          this.dataset.syllableBPMFChars
+        );
+        if (syllableBPMFChars.length > 1) {
+          [...syllableBPMFChars].forEach((chr) => {
             speak(chr);
           });
         }
-        speak(this.dataset.syllableChars);
+        speak(/** @type {string} */ (this.dataset.syllableChars));
       } else {
-        speak(this.dataset.syllableChars);
+        speak(/** @type {string} */ (this.dataset.syllableChars));
       }
     }
   }}];
@@ -92,11 +119,11 @@ function buildFlashcardButton () {
  * @returns {Promise<void>}
  */
 async function init () {
-  document.title = _('title');
+  document.title = /** @type {string} */ (_('title'));
   jml('div', {
     role: 'main', // Expeced by Axe (Accessibility)
     class: 'hbox'
-  }, [
+  }, /** @type {import('jamilih').JamilihChildren} */ ([
     ['div', {class: 'vbox'}, [
       ['h1', [_('Controls')]],
       ['div', {class: 'hbox'}, [
@@ -118,89 +145,106 @@ async function init () {
       nbsp,
       ['button', {$on: {
         async click () {
-          const dialog = jml('dialog', {
-            $custom: {
-              $syllableCtr: -1,
-              $randomSyllables: [],
-              async $setPreviousRandomSyllable () {
-                if (this.$syllableCtr < 1) {
-                  return;
+          const dialog = /**
+           * @type {HTMLDialogElement & {
+           *   $setPreviousRandomSyllable: () => Promise<void>,
+           *   $setSyllable: (
+           *     syllableBPMFChars: string,
+           *     pinyinWithTones: string,
+           *     syllableChars: string
+           *   ) => Promise<void>,
+           *   $setRandomSyllable: () => Promise<void>
+           * }}
+           */ (jml('dialog', {
+              $custom: {
+                $syllableCtr: -1,
+                /** @type {import('../../src/index.js').Syllable[]} */
+                $randomSyllables: [],
+                async $setPreviousRandomSyllable () {
+                  if (this.$syllableCtr < 1) {
+                    return;
+                  }
+                  const previousRandomSyllableInfo =
+                    this.$randomSyllables[--this.$syllableCtr];
+                  await this.$setSyllable(...previousRandomSyllableInfo);
+                },
+
+                /**
+                 * @param {string} syllableBPMFChars
+                 * @param {string} pinyinWithTones
+                 * @param {string} syllableChars
+                 */
+                async $setSyllable (
+                  syllableBPMFChars, pinyinWithTones, syllableChars
+                ) {
+                  $('#flashcardSound').replaceWith(
+                    jml(...buildFlashcardButton())
+                  );
+                  const displayChars = await prefs.getPref(
+                    'Display_Chinese_characters'
+                  );
+                  const noCharAvailable = pinyinWithTones === syllableChars;
+                  const flashcardSound = $('#flashcardSound');
+                  flashcardSound.textContent = displayChars
+                    ? syllableChars
+                    : pinyinWithTones;
+                  flashcardSound.dataset.syllableBPMFChars = syllableBPMFChars;
+                  flashcardSound.dataset.syllableChars = noCharAvailable
+                  // Pronounce BMPF when no char. available as pinyin
+                  //  reading, even with tones, is treated as English
+                    ? syllableBPMFChars
+                    : syllableChars;
+                  flashcardSound.dataset.tippyContent =
+                    (displayChars ? pinyinWithTones + ' (' : '') +
+                      syllableBPMFChars +
+                      (displayChars ? ')' : '');
+                  tippy('button[data-tippy-content]', {
+                    appendTo: dialog,
+                    zIndex: tippyZIndex,
+                    followCursor: true,
+                    distance: 100,
+                    placement: 'right'
+                  });
+                },
+                async $setRandomSyllable () {
+                  const syllableInfo = (
+                    this.$syllableCtr >= this.$randomSyllables.length - 1
+                  )
+                    ? await getRandomSyllable()
+                    : this.$randomSyllables[this.$syllableCtr + 1];
+                  await this.$setSyllable(...syllableInfo);
+                  this.$randomSyllables[++this.$syllableCtr] = syllableInfo;
                 }
-                const previousRandomSyllableInfo =
-                this.$randomSyllables[--this.$syllableCtr];
-                await this.$setSyllable(...previousRandomSyllableInfo);
-              },
-              async $setSyllable (
-                syllableBPMFChars, pinyinWithTones, syllableChars
-              ) {
-                $('#flashcardSound').replaceWith(
-                  jml(...buildFlashcardButton())
-                );
-                const displayChars = await prefs.getPref(
-                  'Display_Chinese_characters'
-                );
-                const noCharAvailable = pinyinWithTones === syllableChars;
-                const flashcardSound = $('#flashcardSound');
-                flashcardSound.textContent = displayChars
-                  ? syllableChars
-                  : pinyinWithTones;
-                flashcardSound.dataset.syllableBPMFChars = syllableBPMFChars;
-                flashcardSound.dataset.syllableChars = noCharAvailable
-                // Pronounce BMPF when no char. available as pinyin
-                //  reading, even with tones, is treated as English
-                  ? syllableBPMFChars
-                  : syllableChars;
-                flashcardSound.dataset.tippyContent =
-                  (displayChars ? pinyinWithTones + ' (' : '') +
-                    syllableBPMFChars +
-                    (displayChars ? ')' : '');
-                tippy('button[data-tippy-content]', {
-                  appendTo: dialog,
-                  zIndex: tippyZIndex,
-                  followCursor: true,
-                  distance: 100,
-                  placement: 'right'
-                });
-              },
-              async $setRandomSyllable () {
-                const syllableInfo = (
-                  this.$syllableCtr >= this.$randomSyllables.length - 1
-                )
-                  ? await getRandomSyllable()
-                  : this.$randomSyllables[this.$syllableCtr + 1];
-                await this.$setSyllable(...syllableInfo);
-                this.$randomSyllables[++this.$syllableCtr] = syllableInfo;
               }
-            }
-          }, [
-            ['div', {style: 'display: block;'}, [
-              buildFlashcardButton(),
-              ['br'], ['br'],
-              ['button', {$on: {
-                click () {
-                  dialog.$setPreviousRandomSyllable();
-                }
-              }}, [
-                _('backward')
-              ]],
-              ['button', {$on: {
-                async click () {
-                  await dialog.$setRandomSyllable();
-                }
-              }}, [
-                _('forward')
-              ]],
-              ['br'], ['br'],
-              ['button', {$on: {
-                click () {
-                  dialog.close();
-                  dialog.remove();
-                }
-              }}, [
-                _('Close')
+            }, /** @type {import('jamilih').JamilihChildren} */ ([
+              ['div', {style: 'display: block;'}, [
+                buildFlashcardButton(),
+                ['br'], ['br'],
+                ['button', {$on: {
+                  click () {
+                    dialog.$setPreviousRandomSyllable();
+                  }
+                }}, [
+                  _('backward')
+                ]],
+                ['button', {$on: {
+                  async click () {
+                    await dialog.$setRandomSyllable();
+                  }
+                }}, [
+                  _('forward')
+                ]],
+                ['br'], ['br'],
+                ['button', {$on: {
+                  click () {
+                    dialog.close();
+                    dialog.remove();
+                  }
+                }}, [
+                  _('Close')
+                ]]
               ]]
-            ]]
-          ], body);
+            ]), body));
           await dialog.$setRandomSyllable();
           dialogPolyfill.registerDialog(dialog);
           dialog.showModal();
@@ -229,6 +273,9 @@ async function init () {
                     id: preference,
                     checked: await prefs.getPref(preference),
                     $on: {
+                      /**
+                       * @this {HTMLInputElement}
+                       */
                       async click () {
                         await prefs.setPref(preference, this.checked);
                       }
@@ -256,12 +303,12 @@ async function init () {
     ]],
     nbsp.repeat(2),
     ['div', {class: 'buttonArea vbox'}]
-  ], body);
+  ]), body);
 }
 await init();
 
-const voiceSelect = $('#voices');
-const userText = $('#userText');
+const voiceSelect = $s('#voices');
+const userText = $t('#userText');
 const voices = synth.getVoices().filter(({lang, name}) => {
   if (lang.startsWith('zh-CN')) {
     jml('option', {dataset: {lang, name}}, [
@@ -280,13 +327,16 @@ const voices = synth.getVoices().filter(({lang, name}) => {
 function speak (text) {
   const selectedOption = voiceSelect.selectedOptions[0].dataset.name;
   const utterance = new SpeechSynthesisUtterance(text);
-  utterance.voice = voices.find(({name}) => {
-    return name === selectedOption;
-  });
+  utterance.voice = /** @type {SpeechSynthesisVoice} */ (
+    voices.find(({name}) => {
+      return name === selectedOption;
+    })
+  );
   // console.log('utterance.voice', utterance.voice);
   synth.speak(utterance);
 }
 
+/** @type {HTMLDivElement} */
 let lastHorizontalButtonBox;
 
 Object.entries({
@@ -300,7 +350,10 @@ Object.entries({
   const buttonAreaType = $(`#${type}`);
   buttonAreaType.append(
     (i > 0 ? jml('br') : ''),
-    jml('h2', {class: 'symbolType'}, [_(type)])
+    jml('h2', {class: 'symbolType'}, [
+      /** @type {string} */
+      (_(type))
+    ])
   );
 
   symbols.forEach(([bopomofoSymbol, pinyin], j, arr) => {
@@ -319,30 +372,32 @@ Object.entries({
           bopomofoSymbol,
           pronounce: bopomofoSymbol || pinyin, // Default for sake of first tone
           tippyContent: type === 'finals_single_nontranscriptional'
-            ? _('finals_single_nontranscriptional_note')
+            ? /** @type {string} */ (_('finals_single_nontranscriptional_note'))
             : type === 'tones'
               ? j > 0
                 ? j + 1
-                : _('first_tone_is_default')
+                : /** @type {string} */ (_('first_tone_is_default'))
               : bopomofoSymbol
         },
         $on: {
           click () {
-            const {bopomofoSymbol: bpmfSymbol} = this.dataset;
+            const bpmfSymbol = /** @type {string} */ (
+              this.dataset.bopomofoSymbol
+            );
             const {value, selectionStart, selectionEnd} = userText;
             if (lastFocusedElement === userText) {
               userText.value = value.slice(0, selectionStart) +
               bpmfSymbol +
               value.slice(selectionEnd);
               userText.selectionStart = userText.selectionEnd =
-              selectionStart + bpmfSymbol.length;
+                selectionStart + bpmfSymbol.length;
             } else {
               userText.value += bpmfSymbol;
               userText.selectionStart = userText.value.length;
             }
             userText.focus();
 
-            speak(this.dataset.pronounce);
+            speak(/** @type {string} */ (this.dataset.pronounce));
           }
         }
       }, [pinyin]),
@@ -354,21 +409,24 @@ Object.entries({
   });
 });
 $('.buttonArea').append(nbsp, jml('a', {href: 'https://github.com/brettz9/bopomofo/blob/master/LICENSE-AGPL.txt'}, [
-  _('License_AGPL')
+  /** @type {string} */ (_('License_AGPL'))
 ]));
 
 // EVENTS
 
+/** @type {HTMLElement} */
 let lastFocusedElement;
 // Focus listener is needed for likes of tab control selection
 //   but focus is apparently needed for clicks on non-form-controls
 document.addEventListener('focus', function ({target}) {
-  lastFocusedElement = target;
+  lastFocusedElement = /** @type {HTMLElement} */ (target);
 }, true); // Must be capturing for `focus` or `blur`
 globalThis.addEventListener('click', function ({target}) {
   // Focus doesn't seem to always detect (at least in Firefox)
-  if (!target.classList.contains('bopomofoSymbol')) {
-    lastFocusedElement = target;
+  if (!(/** @type {HTMLElement} */ (
+    target
+  )).classList.contains('bopomofoSymbol')) {
+    lastFocusedElement = /** @type {HTMLElement} */ (target);
     // console.log('lastFocusedElement', lastFocusedElement);
   }
 });

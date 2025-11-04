@@ -1,0 +1,23 @@
+{
+  "compilerOptions": {
+    "lib": ["es2024", "DOM"],
+    "moduleResolution": "NodeNext",
+    "module": "NodeNext",
+    "allowJs": true,
+    "checkJs": true,
+    "noEmit": true,
+    "strict": true,
+    "skipLibCheck": true,
+    "target": "es2024",
+    "outDir": "dist"
+  },
+  "include": [
+    "build/**/*.js",
+    "src/**/*.js",
+    "test/**/*.js",
+    "tools/**/*.js",
+    "*.js",
+    "typings/**/*.d.ts"
+  ],
+  "exclude": ["node_modules"]
+}
